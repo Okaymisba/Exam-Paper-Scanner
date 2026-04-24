@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>OBE Exam Marks Extractor</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"/>
+</head>
+<body>
+
+<!-- ── Loading Overlay ──────────────────────────────────────────────────────── -->
+<div id="loadingOverlay" class="loading-overlay hidden">
+  <div class="spinner-box">
+    <div class="spinner"></div>
+    <p class="spinner-title">Running OCR…</p>
+    <p class="spinner-sub">Detecting orientation, preprocessing, and extracting marks.<br>May take 20–60 seconds.</p>
+  </div>
+</div>
+
+<div class="app-shell">
+
+  <!-- ── Header ───────────────────────────────────────────────────────────── -->
+  <header class="app-header">
+    <div class="header-brand">
+      <span class="brand-icon">📝</span>
+      <div>
+        <h1 class="brand-name">OBE Exam Marks Extractor</h1>
+        <p class="brand-sub">Scan NED OBE sheets → extract marks → export Excel</p>
+      </div>
+    </div>
+    <nav class="steps" id="stepIndicator">
+      <div class="step active" id="stepDot1" data-n="1"><span class="step-num">1</span><span class="step-label">Setup</span></div>
+      <div class="step-connector"></div>
+      <div class="step" id="stepDot2" data-n="2"><span class="step-num">2</span><span class="step-label">Enter Marks</span></div>
+      <div class="step-connector"></div>
+      <div class="step" id="stepDot3" data-n="3"><span class="step-num">3</span><span class="step-label">Done</span></div>
+    </nav>
+  </header>
+
+  <main class="app-main">
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         SCREEN 1 — SETUP
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <section class="screen active" id="screenSetup">
+      <div class="card">
+        <div class="card-header">
+          <h2>Exam Setup</h2>
+          <p>Configure the exam name, roll number series, and question structure.</p>
+        </div>
+
+        <form id="setupForm" novalidate>
+
+          <!-- Row 1: exam name + pass threshold -->
+          <div class="form-grid two-col">
+            <div class="form-group">
+              <label for="examName">Exam / Subject Name <span class="req">*</span></label>
+              <input id="examName" type="text" placeholder="e.g. SE-209 CALD Mid Term" required/>
+            </div>
+            <div class="form-group">
+              <label for="passThreshold">Pass Percentage (%) <span class="req">*</span></label>
+              <input id="passThreshold" type="number" min="1" max="100" value="50" required/>
+            </div>
+          </div>
+
+          <!-- Row 2: roll number configuration -->
+          <div class="form-section-title">Roll Number Configuration</div>
+          <div class="form-grid three-col">
+            <div class="form-group">
+              <label for="rollPrefix">Department Code <span class="req">*</span></label>
+              <input id="rollPrefix" type="text" placeholder="e.g. SE, CS, EE" maxlength="10" required
+                     oninput="updateRollPreview()"/>
+              <span class="field-hint">Prefix before the dash</span>
+            </div>
+            <div class="form-group">
+              <label for="startingRoll">Starting Roll Number <span class="req">*</span></label>
+              <input id="startingRoll" type="number" min="1" placeholder="e.g. 24001" required
+                     oninput="updateRollPreview()"/>
+              <span class="field-hint">Digits only (e.g. 24001)</span>
+            </div>
+            <div class="form-group">
+              <label>Preview</label>
+              <div class="roll-preview" id="rollPreview">—</div>
+            </div>
+          </div>
+
+          <!-- Row 3: question count + table -->
+          <div class="form-section-title">Questions</div>
+          <div class="form-grid one-col">
+            <div class="form-group">
+              <label for="numQuestions">Total Number of Questions <span class="req">*</span></label>
+              <input id="numQuestions" type="number" min="1" max="30" placeholder="e.g. 4" required
+                     style="max-width:200px"/>
+            </div>
+          </div>
+
+          <div id="questionSection" class="question-section hidden">
+            <div class="q-table-wrapper">
+              <table class="q-config-table">
+                <thead>
+                  <tr>
+                    <th>Question</th>
+                    <th>CLO Number <span class="req">*</span></th>
+                    <th>Max Marks <span class="req">*</span></th>
+                  </tr>
+                </thead>
+                <tbody id="questionRows"></tbody>
+              </table>
+            </div>
+            <div class="clo-preview" id="cloPreview"></div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-lg">Start Entering Marks &rarr;</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         SCREEN 2 — STUDENT ENTRY (one at a time)
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <section class="screen hidden" id="screenEntry">
+
+      <!-- Top bar: exam info + export button -->
+      <div class="entry-topbar">
+        <div class="entry-topbar-left">
+          <span id="entryExamTitle" class="entry-exam-title"></span>
+          <span id="entryStudentCount" class="entry-count-pill">0 students added</span>
+        </div>
+        <div class="entry-topbar-right">
+          <button id="exportBtn" class="btn btn-success" disabled>
+            ⬇ Export Excel
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="goTo('screenSetup',1)">&#8592; Setup</button>
+        </div>
+      </div>
+
+      <!-- Two-column layout: upload card + marks card -->
+      <div class="entry-columns">
+
+        <!-- LEFT — upload + roll no -->
+        <div class="card entry-upload-card">
+          <div class="card-header">
+            <h3>Current Student</h3>
+          </div>
+
+          <!-- Roll number input -->
+          <div class="roll-entry-row">
+            <span class="roll-prefix-display" id="rollPrefixDisplay">SE-</span>
+            <input id="currentRollNum" type="number" class="roll-num-input"
+                   placeholder="24001" min="1"/>
+            <button class="btn btn-ghost btn-sm" id="prevRollBtn" title="Previous roll no">&#8592;</button>
+            <button class="btn btn-ghost btn-sm" id="nextRollBtn" title="Next roll no">&#8594;</button>
+          </div>
+
+          <!-- Drop zone -->
+          <div id="dropZone" class="drop-zone" tabindex="0" role="button">
+            <div class="drop-icon" id="dropIcon">📷</div>
+            <p class="drop-title" id="dropTitle">Drop image here or click to browse</p>
+            <p class="drop-hint">JPG · PNG · JPEG</p>
+            <p class="drop-hint" style="margin-top:6px;color:#e67e22;font-weight:600;">&#128247; Hold phone upright &mdash; portrait orientation required</p>
+            <input id="fileInput" type="file" accept="image/*" class="file-input-hidden"/>
+          </div>
+
+          <div id="selectedFilename" class="selected-filename hidden"></div>
+
+          <!-- Process + actions -->
+          <div class="entry-actions">
+            <button id="processBtn" class="btn btn-primary" disabled>
+              🔍 Extract Marks
+            </button>
+            <button id="clearBtn" class="btn btn-ghost btn-sm" style="margin-left:auto">
+              Clear
+            </button>
+          </div>
+        </div>
+
+        <!-- RIGHT — marks review table for current student -->
+        <div class="card entry-marks-card">
+          <div class="card-header">
+            <h3>Extracted Marks <span class="card-sub">— edit if needed</span></h3>
+          </div>
+
+          <div id="ocrStatusMsg" class="ocr-status-msg hidden"></div>
+
+          <!-- Current student marks table (one row) -->
+          <div class="table-scroll">
+            <table class="marks-table compact-table" id="currentMarksTable">
+              <thead id="currentMarksHead"></thead>
+              <tbody id="currentMarksBody"></tbody>
+            </table>
+          </div>
+
+          <!-- Totals display -->
+          <div class="current-totals" id="currentTotals"></div>
+
+          <div class="entry-marks-actions">
+            <button id="addStudentBtn" class="btn btn-success btn-lg" disabled>
+              ✓ Add Student &amp; Next
+            </button>
+            <span class="entry-hint">Review marks above, then click to save and move to the next roll number.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Added students list ──────────────────────────────────────────── -->
+      <div class="card students-list-card" id="studentsListCard">
+        <div class="card-header space-between">
+          <h3>Added Students</h3>
+          <span class="card-sub" id="studentListSub">None yet</span>
+        </div>
+        <div class="table-scroll" id="studentsListScroll" style="display:none">
+          <table class="marks-table" id="studentsTable">
+            <thead id="studentsHead"></thead>
+            <tbody id="studentsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         SCREEN 3 — DONE
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <section class="screen hidden" id="screenDone">
+      <div class="card card-center">
+        <div class="success-icon">✅</div>
+        <h2>Export Complete!</h2>
+        <p class="success-msg">Excel file downloaded. Marks for all students have been saved.</p>
+        <div class="form-actions row center">
+          <button class="btn btn-ghost" onclick="goTo('screenEntry',2)">&#8592; Back to Entry</button>
+          <button id="startOverBtn" class="btn btn-primary">Start New Exam</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     JavaScript
+═══════════════════════════════════════════════════════════════════════════ -->
+<script>
+// ── State ─────────────────────────────────────────────────────────────────────
+let setup        = null;  // { examName, rollPrefix, startingRoll, questions, passThreshold }
+let currentRoll  = 0;     // current numeric part of roll no
+let students     = [];    // array of saved student records
+let pendingMarks = null;  // marks array from last OCR run
+let currentFile  = null;  // File object selected
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+function goTo(screenId, stepNum) {
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.add('hidden'); s.classList.remove('active');
+  });
+  const t = document.getElementById(screenId);
+  t.classList.remove('hidden'); t.classList.add('active');
+
+  document.querySelectorAll('.step').forEach(el => {
+    const n = +el.dataset.n;
+    el.classList.remove('active', 'completed');
+    if (n < stepNum)  el.classList.add('completed');
+    if (n === stepNum) el.classList.add('active');
+  });
+}
+
+function setLoading(show) {
+  document.getElementById('loadingOverlay').classList.toggle('hidden', !show);
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g,
+    m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+// ── Setup screen ───────────────────────────────────────────────────────────────
+document.getElementById('numQuestions').addEventListener('input', renderQuestionRows);
+
+function updateRollPreview() {
+  const prefix = document.getElementById('rollPrefix').value.trim().toUpperCase();
+  const num    = document.getElementById('startingRoll').value.trim();
+  const el     = document.getElementById('rollPreview');
+  el.textContent = (prefix && num) ? `${prefix}-${num}` : '—';
+}
+
+function renderQuestionRows() {
+  const n       = parseInt(document.getElementById('numQuestions').value, 10);
+  const section = document.getElementById('questionSection');
+  const tbody   = document.getElementById('questionRows');
+
+  if (!n || n < 1) { section.classList.add('hidden'); return; }
+  section.classList.remove('hidden');
+
+  while (tbody.children.length > n) tbody.removeChild(tbody.lastChild);
+
+  for (let i = tbody.children.length + 1; i <= n; i++) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="q-num">Q${i}</td>
+      <td><input type="number" id="qClo${i}" min="1" max="20"
+           placeholder="e.g. 1" class="q-input" required oninput="refreshCloPreview()"/></td>
+      <td><input type="number" id="qMax${i}" min="0.5" max="1000" step="0.5"
+           placeholder="e.g. 10" class="q-input" required oninput="refreshCloPreview()"/></td>
+    `;
+    tbody.appendChild(tr);
+  }
+  refreshCloPreview();
+}
+
+function refreshCloPreview() {
+  const n = parseInt(document.getElementById('numQuestions').value, 10) || 0;
+  const groups = {};
+  for (let i = 1; i <= n; i++) {
+    const clo = parseInt(document.getElementById(`qClo${i}`)?.value, 10);
+    const max = parseFloat(document.getElementById(`qMax${i}`)?.value);
+    if (clo && max) {
+      if (!groups[clo]) groups[clo] = { qs: [], total: 0 };
+      groups[clo].qs.push(i);
+      groups[clo].total += max;
+    }
+  }
+  const clos = Object.keys(groups).sort((a,b) => +a - +b);
+  const prev = document.getElementById('cloPreview');
+  if (!clos.length) { prev.innerHTML = ''; return; }
+  prev.innerHTML = '<strong>CLO Summary:</strong> ' +
+    clos.map(c =>
+      `CLO ${c}: Q${groups[c].qs.join(', Q')} &nbsp;(total max: ${groups[c].total})`
+    ).join(' &nbsp;|&nbsp; ');
+}
+
+document.getElementById('setupForm').addEventListener('submit', async e => {
+  e.preventDefault();
+
+  const examName      = document.getElementById('examName').value.trim();
+  const passThreshold = parseFloat(document.getElementById('passThreshold').value);
+  const rollPrefix    = document.getElementById('rollPrefix').value.trim().toUpperCase();
+  const startingRoll  = parseInt(document.getElementById('startingRoll').value.trim(), 10);
+  const n             = parseInt(document.getElementById('numQuestions').value, 10);
+
+  if (!examName)           return alert('Please enter the exam name.');
+  if (!rollPrefix)         return alert('Please enter the department code (e.g. SE).');
+  if (!startingRoll || isNaN(startingRoll)) return alert('Please enter a valid starting roll number.');
+  if (!n)                  return alert('Please enter the number of questions.');
+
+  const questions = [];
+  for (let i = 1; i <= n; i++) {
+    const clo = parseInt(document.getElementById(`qClo${i}`)?.value, 10);
+    const max = parseFloat(document.getElementById(`qMax${i}`)?.value);
+    if (!clo || isNaN(clo) || clo < 1) return alert(`Q${i}: please enter a valid CLO number.`);
+    if (!max || isNaN(max) || max <= 0) return alert(`Q${i}: please enter valid max marks.`);
+    questions.push({ no: i, clo, maxMarks: max });
+  }
+
+  setup = { examName, rollPrefix, startingRoll, questions, passThreshold };
+
+  const res  = await fetch('/api/setup', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(setup),
+  });
+  const data = await res.json();
+  if (!data.success) return alert('Setup error: ' + (data.error || 'Unknown'));
+
+  // Init entry screen
+  students    = [];
+  currentRoll = startingRoll;
+  currentFile = null;
+  pendingMarks = null;
+
+  initEntryScreen();
+  goTo('screenEntry', 2);
+});
+
+// ── Entry screen ───────────────────────────────────────────────────────────────
+
+function initEntryScreen() {
+  document.getElementById('entryExamTitle').textContent = setup.examName;
+  document.getElementById('rollPrefixDisplay').textContent = setup.rollPrefix + '-';
+  document.getElementById('currentRollNum').value = setup.startingRoll;
+  currentRoll = setup.startingRoll;
+
+  buildCurrentMarksTable();
+  buildStudentsListHead();
+  resetCurrentStudent();
+  updateStudentCount();
+}
+
+function getCurrentRollStr() {
+  const num = parseInt(document.getElementById('currentRollNum').value, 10);
+  return `${setup.rollPrefix}-${num}`;
+}
+
+// ── Roll navigation buttons
+document.getElementById('prevRollBtn').addEventListener('click', () => {
+  const inp = document.getElementById('currentRollNum');
+  const v   = parseInt(inp.value, 10);
+  if (v > 1) inp.value = v - 1;
+});
+
+document.getElementById('nextRollBtn').addEventListener('click', () => {
+  const inp = document.getElementById('currentRollNum');
+  inp.value = parseInt(inp.value, 10) + 1;
+});
+
+// ── File selection
+const dropZone  = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('click',    () => fileInput.click());
+dropZone.addEventListener('keypress', e  => { if (e.key === 'Enter') fileInput.click(); });
+dropZone.addEventListener('dragover',  e  => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith('image/')) setCurrentFile(f);
+  else alert('Please drop an image file.');
+});
+fileInput.addEventListener('change', e => {
+  if (e.target.files[0]) setCurrentFile(e.target.files[0]);
+});
+
+function setCurrentFile(f) {
+  currentFile = f;
+  const el = document.getElementById('selectedFilename');
+  el.textContent = `📷 ${f.name}  (${(f.size/1024).toFixed(0)} KB)`;
+  el.classList.remove('hidden');
+  document.getElementById('dropIcon').textContent  = '✔️';
+  document.getElementById('dropTitle').textContent = 'Image selected';
+  document.getElementById('processBtn').disabled   = false;
+  pendingMarks = null;
+  document.getElementById('addStudentBtn').disabled = true;
+  clearOcrStatus();
+}
+
+// ── Process (OCR) button
+document.getElementById('processBtn').addEventListener('click', async () => {
+  if (!currentFile) return;
+  setLoading(true);
+  clearOcrStatus();
+
+  const fd = new FormData();
+  fd.append('image', currentFile);
+
+  try {
+    const res  = await fetch('/api/upload', { method: 'POST', body: fd });
+    const data = await res.json();
+
+    if (data.error) {
+      showOcrStatus('error', '❌ OCR Error: ' + data.error);
+      return;
+    }
+
+    pendingMarks = data.marks;
+    populateCurrentMarksRow(pendingMarks);
+
+    const allGood = pendingMarks.every(m => m.confidence >= 70);
+    if (allGood) {
+      showOcrStatus('success', '✅ Marks extracted successfully. Review and click "Add Student".');
+    } else {
+      const lowCount = pendingMarks.filter(m => m.confidence < 70).length;
+      showOcrStatus('warn', `⚠️ ${lowCount} mark(s) have low OCR confidence (highlighted in yellow). Please verify.`);
+    }
+
+    document.getElementById('addStudentBtn').disabled = false;
+  } catch (err) {
+    showOcrStatus('error', '❌ Processing failed: ' + err.message);
+  } finally {
+    setLoading(false);
+  }
+});
+
+function clearOcrStatus() {
+  const el = document.getElementById('ocrStatusMsg');
+  el.className = 'ocr-status-msg hidden';
+  el.textContent = '';
+}
+
+function showOcrStatus(type, msg) {
+  const el = document.getElementById('ocrStatusMsg');
+  el.className = `ocr-status-msg ocr-status-${type}`;
+  el.textContent = msg;
+}
+
+// ── Add Student button
+document.getElementById('addStudentBtn').addEventListener('click', () => {
+  const rollNo = getCurrentRollStr();
+
+  // Read marks from the editable table row
+  const inputs = [...document.querySelectorAll('#currentMarksBody input.mark-input')];
+  const marks  = setup.questions.map((q, i) => ({
+    questionNo: q.no,
+    clo:        q.clo,
+    maxMarks:   q.maxMarks,
+    obtained:   parseFloat(inputs[i]?.value) || 0,
+  }));
+
+  students.push({ rollNo, marks });
+  addStudentToList({ rollNo, marks });
+  updateStudentCount();
+
+  // Enable export once we have at least one student
+  document.getElementById('exportBtn').disabled = (students.length === 0);
+
+  // Advance roll number and reset for next student
+  const numInp = document.getElementById('currentRollNum');
+  numInp.value = parseInt(numInp.value, 10) + 1;
+  resetCurrentStudent();
+});
+
+function resetCurrentStudent() {
+  currentFile  = null;
+  pendingMarks = null;
+  fileInput.value = '';
+
+  const el = document.getElementById('selectedFilename');
+  el.textContent = '';
+  el.classList.add('hidden');
+
+  document.getElementById('dropIcon').textContent  = '📷';
+  document.getElementById('dropTitle').textContent = 'Drop image here or click to browse';
+  document.getElementById('processBtn').disabled   = true;
+  document.getElementById('addStudentBtn').disabled = true;
+
+  // Clear marks table row to zeros
+  populateCurrentMarksRow(
+    setup.questions.map(q => ({ questionNo: q.no, clo: q.clo, maxMarks: q.maxMarks, obtained: 0, confidence: 100 }))
+  );
+  clearOcrStatus();
+}
+
+// ── Clear button
+document.getElementById('clearBtn').addEventListener('click', resetCurrentStudent);
+
+// ── Current marks table ───────────────────────────────────────────────────────
+
+function getCloGroups() {
+  const groups = {};
+  setup.questions.forEach(q => {
+    if (!groups[q.clo]) groups[q.clo] = [];
+    groups[q.clo].push(q);
+  });
+  return Object.keys(groups).sort((a,b) => +a - +b).map(c => ({
+    cloNo:     +c,
+    questions: groups[c],
+    totalMax:  groups[c].reduce((s, q) => s + q.maxMarks, 0),
+  }));
+}
+
+function buildCurrentMarksTable() {
+  const cloGroups = getCloGroups();
+  const head = document.getElementById('currentMarksHead');
+
+  let r1 = '<tr>';
+  cloGroups.forEach(g => {
+    r1 += `<th colspan="${g.questions.length}" class="th-clo-group">CLO ${g.cloNo} <small>(max ${g.totalMax})</small></th>`;
+  });
+  cloGroups.forEach(g => {
+    r1 += `<th class="th-subtot">CLO${g.cloNo}<br/>Total</th>`;
+  });
+  r1 += '<th class="th-grand">Total</th><th class="th-pct">%</th><th class="th-result">Result</th></tr>';
+
+  let r2 = '<tr>';
+  cloGroups.forEach(g => {
+    g.questions.forEach(q => {
+      r2 += `<th class="th-q">Q${q.no}<br/><small>/${q.maxMarks}</small></th>`;
+    });
+  });
+  cloGroups.forEach(() => r2 += '<th></th>');
+  r2 += '<th></th><th></th><th></th></tr>';
+
+  head.innerHTML = r1 + r2;
+  // Create the body row (initially empty — will be filled by populateCurrentMarksRow)
+  document.getElementById('currentMarksBody').innerHTML = '<tr id="currentMarksRow"></tr>';
+}
+
+function populateCurrentMarksRow(marks) {
+  const cloGroups = getCloGroups();
+  const tr = document.getElementById('currentMarksRow');
+  tr.innerHTML = '';
+
+  // Mark cells (editable)
+  cloGroups.forEach(g => {
+    g.questions.forEach(q => {
+      const m    = marks.find(mk => mk.questionNo === q.no) ?? { obtained: 0, confidence: 100 };
+      const td   = document.createElement('td');
+      const conf = m.confidence ?? 100;
+      if (conf < 80) td.classList.add('low-conf');
+
+      const inp      = document.createElement('input');
+      inp.type       = 'number';
+      inp.min        = 0;
+      inp.max        = q.maxMarks;
+      inp.step       = 0.5;
+      inp.value      = m.obtained ?? 0;
+      inp.className  = 'cell-input mark-input';
+      inp.dataset.max = q.maxMarks;
+      inp.addEventListener('input', () => {
+        let v = parseFloat(inp.value);
+        if (!isNaN(v) && v > q.maxMarks) inp.value = q.maxMarks;
+        if (!isNaN(v) && v < 0)          inp.value = 0;
+        recomputeCurrentRow();
+      });
+
+      td.appendChild(inp);
+      tr.appendChild(td);
+    });
+  });
+
+  // CLO total cells (computed)
+  cloGroups.forEach(g => {
+    const td = document.createElement('td');
+    td.className = 'col-computed col-clo-tot';
+    td.dataset.clo = g.cloNo;
+    tr.appendChild(td);
+  });
+
+  // Grand total, %, Result
+  ['col-computed col-grand', 'col-computed col-pct', 'col-computed col-result'].forEach(cls => {
+    const td = document.createElement('td');
+    td.className = cls;
+    tr.appendChild(td);
+  });
+
+  recomputeCurrentRow();
+}
+
+function recomputeCurrentRow() {
+  const cloGroups = getCloGroups();
+  const tr        = document.getElementById('currentMarksRow');
+  if (!tr) return;
+
+  const totalMax = setup.questions.reduce((s, q) => s + q.maxMarks, 0);
+  const inputs   = [...tr.querySelectorAll('.mark-input')];
+  let grand = 0;
+  let mIdx  = 0;
+
+  cloGroups.forEach(g => {
+    let cloTot = 0;
+    g.questions.forEach(() => {
+      const v = parseFloat(inputs[mIdx]?.value) || 0;
+      cloTot += v; grand += v; mIdx++;
+    });
+    const cell = tr.querySelector(`.col-clo-tot[data-clo="${g.cloNo}"]`);
+    if (cell) cell.textContent = fmt(cloTot);
+  });
+
+  const pct    = totalMax > 0 ? grand / totalMax * 100 : 0;
+  const result = pct >= setup.passThreshold ? 'Pass' : 'Fail';
+
+  const gc = tr.querySelector('.col-grand');
+  const pc = tr.querySelector('.col-pct');
+  const rc = tr.querySelector('.col-result');
+  if (gc) gc.textContent = fmt(grand);
+  if (pc) pc.textContent = pct.toFixed(1) + '%';
+  if (rc) {
+    rc.textContent = result;
+    rc.className   = 'col-computed col-result ' + (result === 'Pass' ? 'result-pass' : 'result-fail');
+  }
+}
+
+function fmt(n) { return n % 1 === 0 ? String(n) : n.toFixed(1); }
+
+// ── Students list table ───────────────────────────────────────────────────────
+
+function buildStudentsListHead() {
+  const cloGroups = getCloGroups();
+  const head      = document.getElementById('studentsHead');
+
+  let r1 = '<tr><th rowspan="2" class="th-fixed">#</th><th rowspan="2" class="th-fixed">Roll No</th>';
+  cloGroups.forEach(g => {
+    r1 += `<th colspan="${g.questions.length}" class="th-clo-group">CLO ${g.cloNo} <small>(/${g.totalMax})</small></th>`;
+  });
+  cloGroups.forEach(g => {
+    r1 += `<th rowspan="2" class="th-subtot">CLO${g.cloNo}<br/>Total</th>`;
+  });
+  r1 += '<th rowspan="2" class="th-grand">Total</th><th rowspan="2" class="th-pct">%</th>';
+  r1 += '<th rowspan="2" class="th-result">Result</th><th rowspan="2"></th></tr>';
+
+  let r2 = '<tr>';
+  cloGroups.forEach(g => {
+    g.questions.forEach(q => {
+      r2 += `<th class="th-q">Q${q.no}<br/><small>/${q.maxMarks}</small></th>`;
+    });
+  });
+  r2 += '</tr>';
+
+  head.innerHTML = r1 + r2;
+}
+
+function addStudentToList(student) {
+  const tbody     = document.getElementById('studentsBody');
+  const cloGroups = getCloGroups();
+  const totalMax  = setup.questions.reduce((s, q) => s + q.maxMarks, 0);
+  const rowNum    = students.length;   // already pushed before this call
+
+  // Show the table
+  document.getElementById('studentsListScroll').style.display = '';
+
+  const tr = document.createElement('tr');
+
+  // # — row number
+  const tdNum = document.createElement('td');
+  tdNum.textContent = rowNum;
+  tr.appendChild(tdNum);
+
+  // Roll No
+  const tdRoll = document.createElement('td');
+  tdRoll.textContent = student.rollNo;
+  tr.appendChild(tdRoll);
+
+  // Marks per question (in CLO order)
+  let grand = 0;
+  cloGroups.forEach(g => {
+    g.questions.forEach(q => {
+      const m  = student.marks.find(mk => mk.questionNo === q.no) ?? { obtained: 0 };
+      const td = document.createElement('td');
+      td.textContent = fmt(m.obtained);
+      grand += m.obtained;
+      tr.appendChild(td);
+    });
+  });
+
+  // CLO totals
+  cloGroups.forEach(g => {
+    const cloTot = g.questions.reduce((s, q) => {
+      const m = student.marks.find(mk => mk.questionNo === q.no) ?? { obtained: 0 };
+      return s + m.obtained;
+    }, 0);
+    const td = document.createElement('td');
+    td.className   = 'col-computed';
+    td.textContent = fmt(cloTot);
+    tr.appendChild(td);
+  });
+
+  const pct    = totalMax > 0 ? grand / totalMax * 100 : 0;
+  const result = pct >= setup.passThreshold ? 'Pass' : 'Fail';
+
+  const tdGrand = document.createElement('td');
+  tdGrand.className   = 'col-computed';
+  tdGrand.textContent = fmt(grand);
+  tr.appendChild(tdGrand);
+
+  const tdPct = document.createElement('td');
+  tdPct.className   = 'col-computed';
+  tdPct.textContent = pct.toFixed(1) + '%';
+  tr.appendChild(tdPct);
+
+  const tdRes = document.createElement('td');
+  tdRes.className   = 'col-computed col-result ' + (result === 'Pass' ? 'result-pass' : 'result-fail');
+  tdRes.textContent = result;
+  tr.appendChild(tdRes);
+
+  // Delete button
+  const tdDel = document.createElement('td');
+  const btn   = document.createElement('button');
+  btn.className   = 'btn btn-danger btn-xs';
+  btn.textContent = '✕';
+  btn.onclick     = () => {
+    const idx = students.indexOf(student);
+    if (idx > -1) students.splice(idx, 1);
+    tr.remove();
+    // Re-number
+    [...document.querySelectorAll('#studentsBody tr')].forEach((row, i) => {
+      row.cells[0].textContent = i + 1;
+    });
+    updateStudentCount();
+    document.getElementById('exportBtn').disabled = (students.length === 0);
+    if (students.length === 0) document.getElementById('studentsListScroll').style.display = 'none';
+  };
+  tdDel.appendChild(btn);
+  tr.appendChild(tdDel);
+
+  tr.classList.add(result === 'Pass' ? 'row-pass' : 'row-fail');
+  tbody.appendChild(tr);
+}
+
+function updateStudentCount() {
+  const n   = students.length;
+  const el  = document.getElementById('entryStudentCount');
+  el.textContent = `${n} student${n !== 1 ? 's' : ''} added`;
+  el.className   = 'entry-count-pill' + (n > 0 ? ' count-has-data' : '');
+  document.getElementById('studentListSub').textContent = n > 0
+    ? `${n} student${n !== 1 ? 's' : ''} recorded`
+    : 'None yet';
+}
+
+// ── Export ────────────────────────────────────────────────────────────────────
+document.getElementById('exportBtn').addEventListener('click', async () => {
+  if (!students.length) return alert('No students added yet.');
+
+  try {
+    const res = await fetch('/api/export', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ students }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      return alert('Export failed: ' + (err.error || res.statusText));
+    }
+
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `${(setup.examName || 'Exam').replace(/\s+/g, '_')}_Marks_${new Date().toISOString().split('T')[0]}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    goTo('screenDone', 3);
+  } catch (err) {
+    alert('Export error: ' + err.message);
+  }
+});
+
+// ── Start over ────────────────────────────────────────────────────────────────
+document.getElementById('startOverBtn').addEventListener('click', () => {
+  setup = null; students = []; currentFile = null; pendingMarks = null;
+  document.getElementById('setupForm').reset();
+  document.getElementById('questionSection').classList.add('hidden');
+  document.getElementById('questionRows').innerHTML = '';
+  document.getElementById('cloPreview').innerHTML   = '';
+  document.getElementById('rollPreview').textContent = '—';
+  document.getElementById('studentsBody').innerHTML  = '';
+  document.getElementById('studentsListScroll').style.display = 'none';
+  fileInput.value = '';
+  goTo('screenSetup', 1);
+});
+</script>
+</body>
+</html>
