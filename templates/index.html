@@ -157,10 +157,10 @@
           <!-- Drop zone -->
           <div id="dropZone" class="drop-zone" tabindex="0" role="button">
             <div class="drop-icon" id="dropIcon">📷</div>
-            <p class="drop-title" id="dropTitle">Drop image here or click to browse</p>
-            <p class="drop-hint">JPG · PNG · JPEG</p>
+            <p class="drop-title" id="dropTitle">Tap to take photo or choose image</p>
+            <p class="drop-hint">JPG · PNG · JPEG &nbsp;|&nbsp; Desktop: drag &amp; drop supported</p>
             <p class="drop-hint" style="margin-top:6px;color:#e67e22;font-weight:600;">&#128247; Hold phone upright &mdash; portrait orientation required</p>
-            <input id="fileInput" type="file" accept="image/*" class="file-input-hidden"/>
+            <input id="fileInput" type="file" accept="image/*" capture="environment" class="file-input-hidden"/>
           </div>
 
           <div id="selectedFilename" class="selected-filename hidden"></div>
@@ -298,9 +298,9 @@ function renderQuestionRows() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="q-num">Q${i}</td>
-      <td><input type="number" id="qClo${i}" min="1" max="20"
+      <td data-label="CLO Number"><input type="number" id="qClo${i}" min="1" max="20"
            placeholder="e.g. 1" class="q-input" required oninput="refreshCloPreview()"/></td>
-      <td><input type="number" id="qMax${i}" min="0.5" max="1000" step="0.5"
+      <td data-label="Max Marks"><input type="number" id="qMax${i}" min="0.5" max="1000" step="0.5"
            placeholder="e.g. 10" class="q-input" required oninput="refreshCloPreview()"/></td>
     `;
     tbody.appendChild(tr);
