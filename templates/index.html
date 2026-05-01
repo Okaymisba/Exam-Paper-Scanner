@@ -484,21 +484,33 @@ function showOcrStatus(type, msg) {
 }
 
 // ── Add Student button
-document.getElementById('addStudentBtn').addEventListener('click', () => {
+document.getElementById('addStudentBtn').addEventListener('click', async () => {
   const rollNo = getCurrentRollStr();
 
   // Read marks from the editable table row
   const inputs = [...document.querySelectorAll('#currentMarksBody input.mark-input')];
   const marks  = setup.questions.map((q, i) => ({
-    questionNo: q.no,
-    clo:        q.clo,
-    maxMarks:   q.maxMarks,
-    obtained:   parseFloat(inputs[i]?.value) || 0,
+    questionNo:  q.no,
+    clo:         q.clo,
+    maxMarks:    q.maxMarks,
+    obtained:    parseFloat(inputs[i]?.value) || 0,
+    confidence:  null,
   }));
 
   students.push({ rollNo, marks });
   addStudentToList({ rollNo, marks });
   updateStudentCount();
+
+  // Persist to Supabase in the background; do not block the UI on failure.
+  try {
+    await fetch('/api/save_student', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ rollNo, marks }),
+    });
+  } catch (_) {
+    // Silent failure — data is still held in the browser for export.
+  }
 
   // Enable export once we have at least one student
   document.getElementById('exportBtn').disabled = (students.length === 0);
