@@ -2,3 +2,4 @@ venv
 .pip-cache
 Test Images
 .idea
+.env
