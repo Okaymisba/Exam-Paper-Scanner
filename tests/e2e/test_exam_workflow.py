@@ -5,6 +5,10 @@ These tests verify that the exam-related API routes are reachable and return
 the expected HTTP status codes when called via browser fetch requests.
 The Flask server is started by the session-scoped flask_server fixture in
 e2e/conftest.py.
+
+Note: page.goto(base_url) must be called before any page.evaluate() that
+uses relative URL paths, because the browser starts on about:blank and
+relative fetch calls have no base to resolve against.
 """
 
 import pytest
@@ -21,6 +25,7 @@ def test_exams_endpoint_requires_auth_from_browser(page, base_url):
     GET /api/exams without an Authorization header should return HTTP 401
     when called from a real browser context.
     """
+    page.goto(base_url)
     result = page.evaluate("""
         async () => {
             const response = await fetch('/api/exams');
@@ -34,9 +39,10 @@ def test_exams_endpoint_requires_auth_from_browser(page, base_url):
 @pytest.mark.e2e
 def test_exams_endpoint_with_invalid_token_returns_401(page, base_url):
     """
-    GET /api/exams with an Authorization header containing an invalid token
-    should return HTTP 401 when called from a browser.
+    GET /api/exams with an invalid token should return HTTP 401
+    when called from a browser.
     """
+    page.goto(base_url)
     result = page.evaluate("""
         async () => {
             const response = await fetch('/api/exams', {
@@ -59,6 +65,7 @@ def test_setup_endpoint_requires_auth_from_browser(page, base_url):
     POST /api/setup without Authorization should return HTTP 401 from
     a real browser fetch.
     """
+    page.goto(base_url)
     result = page.evaluate("""
         async () => {
             const response = await fetch('/api/setup', {
@@ -84,6 +91,7 @@ def test_setup_endpoint_missing_fields_returns_non_200(page, base_url):
     POST /api/setup with a missing required field and no valid token should
     not return HTTP 200.
     """
+    page.goto(base_url)
     result = page.evaluate("""
         async () => {
             const response = await fetch('/api/setup', {
@@ -108,6 +116,7 @@ def test_save_student_requires_auth_from_browser(page, base_url):
     POST /api/save_student without Authorization should return HTTP 401
     when called from a browser fetch.
     """
+    page.goto(base_url)
     result = page.evaluate("""
         async () => {
             const response = await fetch('/api/save_student', {
@@ -136,6 +145,7 @@ def test_export_requires_auth_from_browser(page, base_url):
     POST /api/export without Authorization should return HTTP 401 from
     a browser context.
     """
+    page.goto(base_url)
     result = page.evaluate("""
         async () => {
             const response = await fetch('/api/export', {
@@ -156,8 +166,9 @@ def test_export_requires_auth_from_browser(page, base_url):
 def test_export_missing_setup_without_auth_returns_401(page, base_url):
     """
     POST /api/export with no setup and no auth should return HTTP 401
-    (auth check runs before input validation in the decorator order).
+    because the auth check decorator runs before input validation.
     """
+    page.goto(base_url)
     result = page.evaluate("""
         async () => {
             const response = await fetch('/api/export', {
@@ -182,6 +193,7 @@ def test_admin_teachers_requires_auth_from_browser(page, base_url):
     GET /api/admin/teachers without Authorization should return HTTP 401
     from a browser context.
     """
+    page.goto(base_url)
     result = page.evaluate("""
         async () => {
             const response = await fetch('/api/admin/teachers');
@@ -197,6 +209,7 @@ def test_admin_approve_requires_auth_from_browser(page, base_url):
     POST /api/admin/approve without Authorization should return HTTP 401
     from a browser context.
     """
+    page.goto(base_url)
     result = page.evaluate("""
         async () => {
             const response = await fetch('/api/admin/approve', {
