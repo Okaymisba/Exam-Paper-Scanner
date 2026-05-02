@@ -257,7 +257,7 @@ An intermediate exam_results table links students to exams (capturing which stud
 
 ---
 
-## Entity Relationship Summary
+## Entity Relationship Summary (Phase 1)
 
 ```
 exams (1) ---- (many) questions
@@ -273,3 +273,89 @@ Every non-key attribute in every table depends on:
 - Nothing but the primary key
 
 This satisfies the definition of Third Normal Form.
+
+---
+
+## Phase 2 Normalization: Teacher Accounts and Authentication
+
+With the addition of teacher account management, a new entity enters the data model. This section applies the same normalization process to the authentication-related data.
+
+### New Source Attributes
+
+When a teacher registers for an account, the following attributes are collected:
+
+| Attribute | Description |
+|---|---|
+| user_id | Identity token issued by Supabase Auth (UUID) |
+| full_name | Teacher's display name |
+| email | Email address used for login |
+| department | Academic department (optional) |
+| role | System role: teacher or admin |
+| status | Approval state: pending, approved, or rejected |
+| requested_at | Timestamp of the signup request |
+| reviewed_at | Timestamp when an admin acted on the request |
+| reviewed_by | Admin user who reviewed the request |
+
+Additionally, the existing `exams` table gains:
+
+| Attribute | Description |
+|---|---|
+| teacher_id | The user_id of the teacher who created this exam |
+
+### Normalization of teacher_profiles
+
+**Un-normalized consideration:**
+
+There is no repeating group in a teacher profile. Each teacher has exactly one profile with one set of attributes. The entity is already flat by nature.
+
+**1NF check:**
+
+Every attribute is atomic. The `role` and `status` columns use constrained string values (not sets or arrays). A single row represents one teacher's account.
+
+Primary Key: user_id (UUID from auth.users)
+
+The table is in 1NF by design.
+
+**2NF check:**
+
+The primary key is a single column (user_id), so partial dependencies cannot exist. A composite key is not involved.
+
+The table is in 2NF by design.
+
+**3NF check:**
+
+Checking for transitive dependencies among non-key attributes:
+
+| Attribute | Depends On | Transitive Dependency? |
+|---|---|---|
+| full_name | user_id | No |
+| email | user_id | No |
+| department | user_id | No |
+| role | user_id | No |
+| status | user_id | No |
+| requested_at | user_id | No |
+| reviewed_at | user_id | No |
+| reviewed_by | user_id | No |
+
+No attribute depends on another non-key attribute. `status` changes over time but does not functionally depend on `role` or any other column. `reviewed_at` and `reviewed_by` depend on the row's primary key, not on `status` (even though they are only populated when status changes, this is a business rule, not a functional dependency).
+
+The table is in 3NF.
+
+**Relationship to exams:**
+
+Adding `teacher_id` to the `exams` table introduces a foreign key reference from `exams` to `auth.users`. This does not affect the normalization of `exams` because `teacher_id` is a foreign key attribute that depends directly on the exam's primary key. All other attributes of `exams` (name, pass_threshold, roll_prefix, starting_roll) remain dependent only on `id`.
+
+### Updated Entity Relationship Summary
+
+```
+auth.users (1) ---- (1) teacher_profiles
+auth.users (1) ---- (many) exams          (via teacher_id)
+
+exams (1) ---- (many) questions
+exams (1) ---- (many) exam_results
+students (1) -- (many) exam_results
+exam_results (1) ---- (many) mark_entries
+questions (1) ------- (many) mark_entries
+```
+
+The complete schema across both phases satisfies Third Normal Form throughout. Every non-key attribute in every table depends on the primary key, the whole primary key, and nothing but the primary key.

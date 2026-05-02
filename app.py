@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, jsonify, send_file
+from flask import Flask, render_template, request, jsonify, send_file, session
+from functools import wraps
 from io import BytesIO
 from datetime import datetime
 import os
@@ -9,22 +10,198 @@ from excel_exporter import export_to_excel
 import database
 
 app = Flask(__name__)
-app.secret_key = "exam-marks-obe-secret-2024"
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "exam-marks-obe-secret-2024")
 
-# In-memory config for the current exam session.
-# Holds the exam setup plus the db-assigned exam_id and question_id_map
-# so subsequent student-save calls can reference the right records.
-_setup_config: dict = {}
 
+# ── Auth helpers ──────────────────────────────────────────────────────────────
+
+def _bearer_token() -> str | None:
+    header = request.headers.get("Authorization", "")
+    if header.startswith("Bearer "):
+        return header[7:]
+    return None
+
+
+def require_auth(f):
+    """Decorator: validates Bearer JWT and ensures account is approved."""
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        jwt = _bearer_token()
+        if not jwt:
+            return jsonify({"error": "Unauthorized"}), 401
+        try:
+            profile = database.get_current_user(jwt)
+        except ValueError as exc:
+            return jsonify({"error": str(exc)}), 403
+        except Exception as exc:
+            return jsonify({"error": "Authentication failed"}), 401
+        request.user_jwt     = jwt
+        request.user_id      = profile["id"]
+        request.user_profile = profile
+        return f(*args, **kwargs)
+    return wrapper
+
+
+def require_admin(f):
+    """Decorator: validates Bearer JWT and ensures account has admin role."""
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        jwt = _bearer_token()
+        if not jwt:
+            return jsonify({"error": "Unauthorized"}), 401
+        try:
+            from supabase import create_client
+            client = create_client(
+                os.environ["NEXT_PUBLIC_SUPABASE_URL"],
+                os.environ["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"],
+            )
+            user_response = client.auth.get_user(jwt)
+            user = user_response.user
+            if not user:
+                return jsonify({"error": "Invalid token"}), 401
+
+            authed = create_client(
+                os.environ["NEXT_PUBLIC_SUPABASE_URL"],
+                os.environ["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"],
+            )
+            authed.postgrest.auth(jwt)
+            rows = (
+                authed.table("teacher_profiles")
+                .select("id, full_name, role, status")
+                .eq("id", user.id)
+                .execute()
+                .data
+            )
+            if not rows or rows[0]["role"] != "admin":
+                return jsonify({"error": "Admin access required"}), 403
+
+            request.user_jwt     = jwt
+            request.user_id      = user.id
+            request.user_profile = rows[0]
+        except Exception as exc:
+            return jsonify({"error": "Authentication failed"}), 401
+        return f(*args, **kwargs)
+    return wrapper
+
+
+# ── Pages ─────────────────────────────────────────────────────────────────────
 
 @app.route("/")
 def index():
     return render_template("index.html")
 
 
+# ── Auth endpoints ────────────────────────────────────────────────────────────
+
+@app.route("/api/auth/signup", methods=["POST"])
+def api_signup():
+    data       = request.get_json(force=True)
+    email      = (data.get("email") or "").strip()
+    password   = (data.get("password") or "").strip()
+    full_name  = (data.get("fullName") or "").strip()
+    department = (data.get("department") or "").strip()
+
+    if not email or not password or not full_name:
+        return jsonify({"error": "Email, password, and name are required."}), 400
+    if len(password) < 6:
+        return jsonify({"error": "Password must be at least 6 characters."}), 400
+
+    try:
+        result = database.sign_up(email, password, full_name, department)
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    if not result["success"]:
+        return jsonify({"error": result["message"]}), 400
+
+    return jsonify(result)
+
+
+@app.route("/api/auth/login", methods=["POST"])
+def api_login():
+    data     = request.get_json(force=True)
+    email    = (data.get("email") or "").strip()
+    password = (data.get("password") or "").strip()
+
+    if not email or not password:
+        return jsonify({"error": "Email and password are required."}), 400
+
+    try:
+        result = database.sign_in(email, password)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 403
+    except Exception as exc:
+        return jsonify({"error": "Login failed. Please try again."}), 500
+
+    return jsonify(result)
+
+
+@app.route("/api/auth/me", methods=["GET"])
+@require_auth
+def api_me():
+    return jsonify({"profile": request.user_profile})
+
+
+# ── Admin endpoints ───────────────────────────────────────────────────────────
+
+@app.route("/api/admin/teachers", methods=["GET"])
+@require_admin
+def api_admin_teachers():
+    try:
+        teachers = database.get_all_teachers(request.user_jwt)
+        return jsonify({"teachers": teachers})
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+
+@app.route("/api/admin/approve", methods=["POST"])
+@require_admin
+def api_admin_approve():
+    data    = request.get_json(force=True)
+    user_id = data.get("userId")
+    if not user_id:
+        return jsonify({"error": "Missing userId"}), 400
+    try:
+        database.update_teacher_status(user_id, "approved",
+                                       request.user_id, request.user_jwt)
+        return jsonify({"success": True})
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+
+@app.route("/api/admin/reject", methods=["POST"])
+@require_admin
+def api_admin_reject():
+    data    = request.get_json(force=True)
+    user_id = data.get("userId")
+    if not user_id:
+        return jsonify({"error": "Missing userId"}), 400
+    try:
+        database.update_teacher_status(user_id, "rejected",
+                                       request.user_id, request.user_jwt)
+        return jsonify({"success": True})
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+
+# ── Exam history ──────────────────────────────────────────────────────────────
+
+@app.route("/api/exams", methods=["GET"])
+@require_auth
+def api_exams():
+    try:
+        exams = database.get_teacher_exams(request.user_jwt)
+        return jsonify({"exams": exams})
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+
+# ── Exam workflow ─────────────────────────────────────────────────────────────
+
 @app.route("/api/setup", methods=["POST"])
+@require_auth
 def api_setup():
-    data = request.get_json(force=True)
+    data     = request.get_json(force=True)
     required = ["examName", "questions", "passThreshold", "rollPrefix", "startingRoll"]
     for field in required:
         if field not in data:
@@ -32,49 +209,68 @@ def api_setup():
     if not data["questions"]:
         return jsonify({"error": "At least one question required"}), 400
 
-    _setup_config.clear()
-    _setup_config.update(data)
-
-    # Persist exam to Supabase; keep going even if DB is unavailable.
     try:
-        exam_id = database.create_exam(
+        exam_id, question_id_map = database.create_exam(
+            teacher_id=request.user_id,
             exam_name=data["examName"],
             pass_threshold=float(data["passThreshold"]),
             roll_prefix=data["rollPrefix"],
             starting_roll=int(data["startingRoll"]),
             questions=data["questions"],
+            jwt=request.user_jwt,
         )
-        _setup_config["_examId"] = exam_id
-        _setup_config["_questionIdMap"] = database.get_question_id_map(exam_id)
     except Exception as exc:
-        # Log the error but do not block the teacher from using the app.
-        print(f"[DB] Failed to save exam to Supabase: {exc}")
-        _setup_config["_examId"] = None
-        _setup_config["_questionIdMap"] = {}
+        print(f"[DB] create_exam failed: {exc}")
+        exam_id, question_id_map = None, {}
 
-    return jsonify({"success": True})
+    return jsonify({
+        "success":       True,
+        "examId":        exam_id,
+        "questionIdMap": question_id_map,
+    })
 
 
 @app.route("/api/upload", methods=["POST"])
+@require_auth
 def api_upload():
     """
-    Accept a single image (field: image).
+    Accept a single image (field: image) and an examId (field: examId).
     Run OCR and return extracted achieved marks.
-    Returns: { marks: [{questionNo, clo, maxMarks, obtained, confidence}] }
     """
-    if not _setup_config:
-        return jsonify({"error": "Setup not configured. Please complete setup first."}), 400
+    exam_id = request.form.get("examId", "").strip()
+    if not exam_id:
+        return jsonify({"error": "examId is required"}), 400
 
     file = request.files.get("image")
     if not file or file.filename == "":
         return jsonify({"error": "No image uploaded"}), 400
+
+    # Fetch exam config from DB so we know questions and their max marks
+    try:
+        exam = database.get_exam_with_questions(exam_id, request.user_jwt)
+    except Exception as exc:
+        return jsonify({"error": f"Could not fetch exam config: {exc}"}), 500
+
+    if not exam:
+        return jsonify({"error": "Exam not found"}), 404
+
+    # Build setup_config in the format process_image expects
+    setup_config = {
+        "examName":      exam["name"],
+        "passThreshold": float(exam["pass_threshold"]),
+        "rollPrefix":    exam["roll_prefix"],
+        "questions":     [
+            {"no": q["no"], "clo": q["clo"], "maxMarks": q["maxMarks"]}
+            for q in exam["questions"]
+        ],
+    }
 
     suffix = os.path.splitext(file.filename)[1] or ".jpg"
     tmp_fd, tmp_path = tempfile.mkstemp(suffix=suffix)
     try:
         with os.fdopen(tmp_fd, "wb") as f:
             file.save(f)
-        result = process_image(tmp_path, _setup_config)
+        result = process_image(tmp_path, setup_config)
         return jsonify(result)
     except Exception as exc:
         return jsonify({"error": str(exc)}), 500
@@ -84,55 +280,49 @@ def api_upload():
 
 
 @app.route("/api/save_student", methods=["POST"])
+@require_auth
 def api_save_student():
-    """
-    Persist one student's marks to Supabase.
-    Expects: { rollNo: str, marks: [{questionNo, obtained, confidence}] }
-    """
-    if not _setup_config:
-        return jsonify({"error": "Setup not configured"}), 400
-
-    exam_id = _setup_config.get("_examId")
-    if not exam_id:
-        # DB save was skipped during setup; return a soft success so the
-        # frontend can continue without interruption.
-        return jsonify({"success": True, "saved": False})
-
-    data = request.get_json(force=True)
-    roll_no = data.get("rollNo", "").strip()
+    """Persist one student's marks to Supabase."""
+    data    = request.get_json(force=True)
+    exam_id = (data.get("examId") or "").strip()
+    roll_no = (data.get("rollNo") or "").strip()
     marks   = data.get("marks", [])
 
-    if not roll_no:
-        return jsonify({"error": "Missing rollNo"}), 400
+    if not exam_id or not roll_no:
+        return jsonify({"error": "examId and rollNo are required"}), 400
 
     try:
+        question_id_map = database.get_question_id_map(exam_id, request.user_jwt)
         result_id = database.save_student_result(
             exam_id=exam_id,
             student_roll_no=roll_no,
             marks=marks,
-            question_id_map=_setup_config.get("_questionIdMap", {}),
+            question_id_map=question_id_map,
+            jwt=request.user_jwt,
         )
-        return jsonify({"success": True, "saved": True, "resultId": result_id})
+        return jsonify({"success": True, "resultId": result_id})
     except Exception as exc:
-        print(f"[DB] Failed to save student {roll_no}: {exc}")
+        print(f"[DB] save_student failed for {roll_no}: {exc}")
         return jsonify({"success": True, "saved": False, "error": str(exc)})
 
 
 @app.route("/api/export", methods=["POST"])
+@require_auth
 def api_export():
-    if not _setup_config:
-        return jsonify({"error": "Setup not configured"}), 400
+    data      = request.get_json(force=True)
+    students  = data.get("students", [])
+    setup_cfg = data.get("setup", {})
 
-    data     = request.get_json(force=True)
-    students = data.get("students", [])
+    if not setup_cfg:
+        return jsonify({"error": "setup config required"}), 400
 
-    exam_name = _setup_config.get("examName", "Exam").replace(" ", "_")
+    exam_name = setup_cfg.get("examName", "Exam").replace(" ", "_")
     date_str  = datetime.now().strftime("%Y-%m-%d")
     filename  = f"{exam_name}_Marks_{date_str}.xlsx"
 
     buffer = BytesIO()
     try:
-        export_to_excel(buffer, students, _setup_config)
+        export_to_excel(buffer, students, setup_cfg)
         buffer.seek(0)
         return send_file(
             buffer,

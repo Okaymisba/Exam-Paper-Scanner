@@ -12,8 +12,8 @@
 <div id="loadingOverlay" class="loading-overlay hidden">
   <div class="spinner-box">
     <div class="spinner"></div>
-    <p class="spinner-title">Running OCR…</p>
-    <p class="spinner-sub">Detecting orientation, preprocessing, and extracting marks.<br>May take 20–60 seconds.</p>
+    <p class="spinner-title" id="loadingTitle">Please wait…</p>
+    <p class="spinner-sub"   id="loadingSub"></p>
   </div>
 </div>
 
@@ -25,33 +25,216 @@
       <span class="brand-icon">📝</span>
       <div>
         <h1 class="brand-name">OBE Exam Marks Extractor</h1>
-        <p class="brand-sub">Scan NED OBE sheets → extract marks → export Excel</p>
+        <p class="brand-sub">Scan NED OBE sheets &rarr; extract marks &rarr; export Excel</p>
       </div>
     </div>
-    <nav class="steps" id="stepIndicator">
-      <div class="step active" id="stepDot1" data-n="1"><span class="step-num">1</span><span class="step-label">Setup</span></div>
-      <div class="step-connector"></div>
-      <div class="step" id="stepDot2" data-n="2"><span class="step-num">2</span><span class="step-label">Enter Marks</span></div>
-      <div class="step-connector"></div>
-      <div class="step" id="stepDot3" data-n="3"><span class="step-num">3</span><span class="step-label">Done</span></div>
-    </nav>
+
+    <!-- Shown only when logged in -->
+    <div class="header-right" id="headerRight" style="display:none">
+      <nav class="steps" id="stepIndicator" style="display:none">
+        <div class="step active" id="stepDot1" data-n="1"><span class="step-num">1</span><span class="step-label">Setup</span></div>
+        <div class="step-connector"></div>
+        <div class="step" id="stepDot2" data-n="2"><span class="step-num">2</span><span class="step-label">Enter Marks</span></div>
+        <div class="step-connector"></div>
+        <div class="step" id="stepDot3" data-n="3"><span class="step-num">3</span><span class="step-label">Done</span></div>
+      </nav>
+      <div class="header-user">
+        <span class="user-avatar" id="userAvatar">T</span>
+        <span class="user-name"   id="userName"></span>
+        <button class="btn btn-ghost btn-sm" onclick="logout()">Sign out</button>
+      </div>
+    </div>
   </header>
 
   <main class="app-main">
 
     <!-- ════════════════════════════════════════════════════════════════════
+         SCREEN: AUTH (login / signup)
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <section class="screen active" id="screenAuth">
+      <div class="auth-container">
+        <div class="auth-card card">
+
+          <div class="auth-tabs">
+            <button class="auth-tab active" id="tabLogin"  onclick="switchTab('login')">Sign In</button>
+            <button class="auth-tab"        id="tabSignup" onclick="switchTab('signup')">Request Account</button>
+          </div>
+
+          <!-- Login form -->
+          <div id="formLogin">
+            <div class="card-header">
+              <h2>Welcome back</h2>
+              <p>Sign in to access your exams and mark history.</p>
+            </div>
+            <div id="loginError" class="alert alert-error hidden"></div>
+            <div class="form-group">
+              <label for="loginEmail">Email</label>
+              <input id="loginEmail" type="email" placeholder="teacher@ned.edu.pk" autocomplete="email"/>
+            </div>
+            <div class="form-group">
+              <label for="loginPassword">Password</label>
+              <input id="loginPassword" type="password" placeholder="Your password" autocomplete="current-password"/>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-primary btn-lg btn-full" onclick="doLogin()">Sign In &rarr;</button>
+            </div>
+          </div>
+
+          <!-- Signup form -->
+          <div id="formSignup" class="hidden">
+            <div class="card-header">
+              <h2>Request an account</h2>
+              <p>Your request will be reviewed by an admin before you can log in.</p>
+            </div>
+            <div id="signupError"   class="alert alert-error   hidden"></div>
+            <div id="signupSuccess" class="alert alert-success hidden"></div>
+            <div class="form-grid two-col">
+              <div class="form-group">
+                <label for="signupName">Full Name <span class="req">*</span></label>
+                <input id="signupName" type="text" placeholder="Dr. Ayesha Khan"/>
+              </div>
+              <div class="form-group">
+                <label for="signupDept">Department</label>
+                <input id="signupDept" type="text" placeholder="e.g. SE, CS, EE"/>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="signupEmail">Email <span class="req">*</span></label>
+              <input id="signupEmail" type="email" placeholder="teacher@ned.edu.pk"/>
+            </div>
+            <div class="form-group">
+              <label for="signupPassword">Password <span class="req">*</span></label>
+              <input id="signupPassword" type="password" placeholder="At least 6 characters"/>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-primary btn-lg btn-full" onclick="doSignup()">Submit Request &rarr;</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         SCREEN: PENDING APPROVAL
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <section class="screen hidden" id="screenPending">
+      <div class="status-container">
+        <div class="card card-center">
+          <div class="status-icon pending-icon">⏳</div>
+          <h2>Pending Approval</h2>
+          <p class="status-msg">Your account request has been submitted and is waiting for admin review. You will be able to log in once it is approved.</p>
+          <button class="btn btn-ghost btn-sm" onclick="logout()">Sign out</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         SCREEN: REJECTED
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <section class="screen hidden" id="screenRejected">
+      <div class="status-container">
+        <div class="card card-center">
+          <div class="status-icon rejected-icon">🚫</div>
+          <h2>Account Not Approved</h2>
+          <p class="status-msg">Your account request was not approved. Please contact the administrator if you believe this is an error.</p>
+          <button class="btn btn-ghost btn-sm" onclick="logout()">Sign out</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         SCREEN: ADMIN PANEL
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <section class="screen hidden" id="screenAdmin">
+      <div class="admin-topbar">
+        <h2 class="admin-title">Admin Panel</h2>
+        <span class="admin-sub" id="adminSub">Manage teacher access requests</span>
+      </div>
+
+      <div id="adminError" class="alert alert-error hidden" style="margin:0 0 16px"></div>
+
+      <div class="card">
+        <div class="card-header space-between">
+          <div>
+            <h3>Teacher Accounts</h3>
+            <span class="card-sub" id="teacherCountLabel">Loading...</span>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="loadAdminTeachers()">&#8635; Refresh</button>
+        </div>
+
+        <div class="table-scroll" id="adminTableWrap">
+          <table class="marks-table" id="adminTable">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Department</th>
+                <th>Requested</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="adminTableBody">
+              <tr><td colspan="6" class="empty-row">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         SCREEN: EXAM HISTORY
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <section class="screen hidden" id="screenHistory">
+      <div class="history-topbar">
+        <div>
+          <h2 class="history-title">My Exams</h2>
+          <span class="card-sub" id="historyCountLabel"></span>
+        </div>
+        <button class="btn btn-primary" onclick="startNewExam()">+ New Exam</button>
+      </div>
+
+      <div id="historyEmpty" class="card card-center hidden">
+        <div class="empty-icon">📋</div>
+        <h3>No exams yet</h3>
+        <p style="color:var(--gray-500);margin:8px 0 20px">Start your first exam to see it here.</p>
+        <button class="btn btn-primary" onclick="startNewExam()">+ New Exam</button>
+      </div>
+
+      <div class="card" id="historyTableCard" style="display:none">
+        <div class="table-scroll">
+          <table class="marks-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Exam Name</th>
+                <th>Roll Prefix</th>
+                <th>Pass %</th>
+                <th>Created</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════════════
          SCREEN 1 — SETUP
     ═══════════════════════════════════════════════════════════════════════ -->
-    <section class="screen active" id="screenSetup">
+    <section class="screen hidden" id="screenSetup">
       <div class="card">
-        <div class="card-header">
-          <h2>Exam Setup</h2>
-          <p>Configure the exam name, roll number series, and question structure.</p>
+        <div class="card-header space-between">
+          <div>
+            <h2>Exam Setup</h2>
+            <p>Configure the exam name, roll number series, and question structure.</p>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="goToHistory()">&larr; My Exams</button>
         </div>
 
         <form id="setupForm" novalidate>
 
-          <!-- Row 1: exam name + pass threshold -->
           <div class="form-grid two-col">
             <div class="form-group">
               <label for="examName">Exam / Subject Name <span class="req">*</span></label>
@@ -63,7 +246,6 @@
             </div>
           </div>
 
-          <!-- Row 2: roll number configuration -->
           <div class="form-section-title">Roll Number Configuration</div>
           <div class="form-grid three-col">
             <div class="form-group">
@@ -80,11 +262,10 @@
             </div>
             <div class="form-group">
               <label>Preview</label>
-              <div class="roll-preview" id="rollPreview">—</div>
+              <div class="roll-preview" id="rollPreview">--</div>
             </div>
           </div>
 
-          <!-- Row 3: question count + table -->
           <div class="form-section-title">Questions</div>
           <div class="form-grid one-col">
             <div class="form-group">
@@ -118,11 +299,10 @@
     </section>
 
     <!-- ════════════════════════════════════════════════════════════════════
-         SCREEN 2 — STUDENT ENTRY (one at a time)
+         SCREEN 2 — STUDENT ENTRY
     ═══════════════════════════════════════════════════════════════════════ -->
     <section class="screen hidden" id="screenEntry">
 
-      <!-- Top bar: exam info + export button -->
       <div class="entry-topbar">
         <div class="entry-topbar-left">
           <span id="entryExamTitle" class="entry-exam-title"></span>
@@ -130,22 +310,19 @@
         </div>
         <div class="entry-topbar-right">
           <button id="exportBtn" class="btn btn-success" disabled>
-            ⬇ Export Excel
+            &#8595; Export Excel
           </button>
           <button class="btn btn-ghost btn-sm" onclick="goTo('screenSetup',1)">&#8592; Setup</button>
         </div>
       </div>
 
-      <!-- Two-column layout: upload card + marks card -->
       <div class="entry-columns">
 
-        <!-- LEFT — upload + roll no -->
         <div class="card entry-upload-card">
           <div class="card-header">
             <h3>Current Student</h3>
           </div>
 
-          <!-- Roll number input -->
           <div class="roll-entry-row">
             <span class="roll-prefix-display" id="rollPrefixDisplay">SE-</span>
             <input id="currentRollNum" type="number" class="roll-num-input"
@@ -154,18 +331,16 @@
             <button class="btn btn-ghost btn-sm" id="nextRollBtn" title="Next roll no">&#8594;</button>
           </div>
 
-          <!-- Drop zone -->
           <div id="dropZone" class="drop-zone" tabindex="0" role="button">
             <div class="drop-icon" id="dropIcon">📷</div>
             <p class="drop-title" id="dropTitle">Tap to take photo or choose image</p>
-            <p class="drop-hint">JPG · PNG · JPEG &nbsp;|&nbsp; Desktop: drag &amp; drop supported</p>
+            <p class="drop-hint">JPG &middot; PNG &middot; JPEG &nbsp;|&nbsp; Desktop: drag &amp; drop supported</p>
             <p class="drop-hint" style="margin-top:6px;color:#e67e22;font-weight:600;">&#128247; Hold phone upright &mdash; portrait orientation required</p>
             <input id="fileInput" type="file" accept="image/*" capture="environment" class="file-input-hidden"/>
           </div>
 
           <div id="selectedFilename" class="selected-filename hidden"></div>
 
-          <!-- Process + actions -->
           <div class="entry-actions">
             <button id="processBtn" class="btn btn-primary" disabled>
               🔍 Extract Marks
@@ -176,15 +351,13 @@
           </div>
         </div>
 
-        <!-- RIGHT — marks review table for current student -->
         <div class="card entry-marks-card">
           <div class="card-header">
-            <h3>Extracted Marks <span class="card-sub">— edit if needed</span></h3>
+            <h3>Extracted Marks <span class="card-sub">-- edit if needed</span></h3>
           </div>
 
           <div id="ocrStatusMsg" class="ocr-status-msg hidden"></div>
 
-          <!-- Current student marks table (one row) -->
           <div class="table-scroll">
             <table class="marks-table compact-table" id="currentMarksTable">
               <thead id="currentMarksHead"></thead>
@@ -192,19 +365,17 @@
             </table>
           </div>
 
-          <!-- Totals display -->
           <div class="current-totals" id="currentTotals"></div>
 
           <div class="entry-marks-actions">
             <button id="addStudentBtn" class="btn btn-success btn-lg" disabled>
-              ✓ Add Student &amp; Next
+              &#10003; Add Student &amp; Next
             </button>
             <span class="entry-hint">Review marks above, then click to save and move to the next roll number.</span>
           </div>
         </div>
       </div>
 
-      <!-- ── Added students list ──────────────────────────────────────────── -->
       <div class="card students-list-card" id="studentsListCard">
         <div class="card-header space-between">
           <h3>Added Students</h3>
@@ -225,12 +396,13 @@
     ═══════════════════════════════════════════════════════════════════════ -->
     <section class="screen hidden" id="screenDone">
       <div class="card card-center">
-        <div class="success-icon">✅</div>
+        <div class="success-icon">&#10003;</div>
         <h2>Export Complete!</h2>
         <p class="success-msg">Excel file downloaded. Marks for all students have been saved.</p>
         <div class="form-actions row center">
-          <button class="btn btn-ghost" onclick="goTo('screenEntry',2)">&#8592; Back to Entry</button>
-          <button id="startOverBtn" class="btn btn-primary">Start New Exam</button>
+          <button class="btn btn-ghost"    onclick="goTo('screenEntry',2)">&#8592; Back to Entry</button>
+          <button class="btn btn-primary"  onclick="startNewExam()">New Exam</button>
+          <button class="btn btn-ghost"    onclick="goToHistory()">My Exams</button>
         </div>
       </div>
     </section>
@@ -242,36 +414,318 @@
      JavaScript
 ═══════════════════════════════════════════════════════════════════════════ -->
 <script>
-// ── State ─────────────────────────────────────────────────────────────────────
-let setup        = null;  // { examName, rollPrefix, startingRoll, questions, passThreshold }
-let currentRoll  = 0;     // current numeric part of roll no
-let students     = [];    // array of saved student records
-let pendingMarks = null;  // marks array from last OCR run
-let currentFile  = null;  // File object selected
+// ── App state ─────────────────────────────────────────────────────────────────
+let authToken    = localStorage.getItem('obe_token') || null;
+let currentUser  = null;
+let setup        = null;   // { examName, rollPrefix, startingRoll, questions, passThreshold, examId, questionIdMap }
+let currentRoll  = 0;
+let students     = [];
+let pendingMarks = null;
+let currentFile  = null;
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s).replace(/[&<>"']/g,
+    m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function fmt(n) { return n % 1 === 0 ? String(n) : n.toFixed(1); }
+
+function setLoading(show, title = 'Please wait…', sub = '') {
+  document.getElementById('loadingOverlay').classList.toggle('hidden', !show);
+  document.getElementById('loadingTitle').textContent = title;
+  document.getElementById('loadingSub').textContent   = sub;
+}
+
+async function apiFetch(path, opts = {}) {
+  const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
+  if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+  const res  = await fetch(path, { ...opts, headers });
+  const data = await res.json();
+  return { ok: res.ok, status: res.status, data };
+}
+
+async function apiFetchForm(path, formData) {
+  const headers = {};
+  if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+  const res  = await fetch(path, { method: 'POST', headers, body: formData });
+  const data = await res.json();
+  return { ok: res.ok, status: res.status, data };
+}
 
 // ── Navigation ────────────────────────────────────────────────────────────────
 function goTo(screenId, stepNum) {
   document.querySelectorAll('.screen').forEach(s => {
     s.classList.add('hidden'); s.classList.remove('active');
   });
-  const t = document.getElementById(screenId);
-  t.classList.remove('hidden'); t.classList.add('active');
+  const target = document.getElementById(screenId);
+  target.classList.remove('hidden'); target.classList.add('active');
 
-  document.querySelectorAll('.step').forEach(el => {
-    const n = +el.dataset.n;
-    el.classList.remove('active', 'completed');
-    if (n < stepNum)  el.classList.add('completed');
-    if (n === stepNum) el.classList.add('active');
+  const stepIndicator = document.getElementById('stepIndicator');
+  const showSteps     = stepNum !== undefined && stepNum !== null;
+  stepIndicator.style.display = showSteps ? '' : 'none';
+
+  if (showSteps) {
+    document.querySelectorAll('.step').forEach(el => {
+      const n = +el.dataset.n;
+      el.classList.remove('active', 'completed');
+      if (n < stepNum)  el.classList.add('completed');
+      if (n === stepNum) el.classList.add('active');
+    });
+  }
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  const isLogin = tab === 'login';
+  document.getElementById('formLogin').classList.toggle('hidden', !isLogin);
+  document.getElementById('formSignup').classList.toggle('hidden', isLogin);
+  document.getElementById('tabLogin').classList.toggle('active', isLogin);
+  document.getElementById('tabSignup').classList.toggle('active', !isLogin);
+  clearAlert('loginError');
+  clearAlert('signupError');
+  clearAlert('signupSuccess');
+}
+
+function showAlert(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+
+function clearAlert(id) {
+  const el = document.getElementById(id);
+  el.textContent = '';
+  el.classList.add('hidden');
+}
+
+async function doLogin() {
+  clearAlert('loginError');
+  const email    = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  if (!email || !password) { showAlert('loginError', 'Please enter your email and password.'); return; }
+
+  setLoading(true, 'Signing in…');
+  const { ok, data } = await apiFetch('/api/auth/login', {
+    method: 'POST', body: JSON.stringify({ email, password }),
   });
+  setLoading(false);
+
+  if (!ok) {
+    const msg = data.error || 'Login failed.';
+    if (msg.includes('pending')) {
+      goTo('screenPending');
+      document.getElementById('headerRight').style.display = 'flex';
+      return;
+    }
+    if (msg.includes('not approved')) {
+      goTo('screenRejected');
+      document.getElementById('headerRight').style.display = 'flex';
+      return;
+    }
+    showAlert('loginError', msg);
+    return;
+  }
+
+  authToken   = data.access_token;
+  currentUser = data.profile;
+  localStorage.setItem('obe_token', authToken);
+  afterLogin();
 }
 
-function setLoading(show) {
-  document.getElementById('loadingOverlay').classList.toggle('hidden', !show);
+async function doSignup() {
+  clearAlert('signupError');
+  clearAlert('signupSuccess');
+  const fullName   = document.getElementById('signupName').value.trim();
+  const email      = document.getElementById('signupEmail').value.trim();
+  const password   = document.getElementById('signupPassword').value;
+  const department = document.getElementById('signupDept').value.trim();
+
+  if (!fullName || !email || !password) {
+    showAlert('signupError', 'Name, email, and password are required.');
+    return;
+  }
+
+  setLoading(true, 'Submitting request…');
+  const { ok, data } = await apiFetch('/api/auth/signup', {
+    method: 'POST',
+    body: JSON.stringify({ fullName, email, password, department }),
+  });
+  setLoading(false);
+
+  if (!ok) { showAlert('signupError', data.error || 'Signup failed.'); return; }
+
+  showAlert('signupSuccess', data.message || 'Request submitted. Awaiting admin approval.');
+  document.getElementById('signupName').value     = '';
+  document.getElementById('signupEmail').value    = '';
+  document.getElementById('signupPassword').value = '';
+  document.getElementById('signupDept').value     = '';
 }
 
-function esc(s) {
-  return String(s).replace(/[&<>"']/g,
-    m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+async function logout() {
+  authToken   = null;
+  currentUser = null;
+  setup       = null;
+  students    = [];
+  localStorage.removeItem('obe_token');
+  document.getElementById('headerRight').style.display = 'none';
+  goTo('screenAuth');
+}
+
+function afterLogin() {
+  // Update header
+  document.getElementById('headerRight').style.display = 'flex';
+  document.getElementById('userName').textContent   = currentUser.full_name || currentUser.email;
+  document.getElementById('userAvatar').textContent = (currentUser.full_name || 'T')[0].toUpperCase();
+
+  if (currentUser.role === 'admin') {
+    goTo('screenAdmin');
+    loadAdminTeachers();
+    return;
+  }
+
+  goTo('screenHistory');
+  loadHistory();
+}
+
+// ── Restore session on page load ──────────────────────────────────────────────
+async function restoreSession() {
+  if (!authToken) { goTo('screenAuth'); return; }
+  setLoading(true, 'Restoring session…');
+  const { ok, data } = await apiFetch('/api/auth/me');
+  setLoading(false);
+
+  if (!ok) {
+    authToken = null;
+    localStorage.removeItem('obe_token');
+    goTo('screenAuth');
+    return;
+  }
+
+  currentUser = data.profile;
+  document.getElementById('headerRight').style.display = 'flex';
+  document.getElementById('userName').textContent   = currentUser.full_name || currentUser.email;
+  document.getElementById('userAvatar').textContent = (currentUser.full_name || 'T')[0].toUpperCase();
+
+  if (currentUser.role === 'admin') {
+    goTo('screenAdmin');
+    loadAdminTeachers();
+  } else {
+    goTo('screenHistory');
+    loadHistory();
+  }
+}
+
+// ── Admin panel ───────────────────────────────────────────────────────────────
+async function loadAdminTeachers() {
+  document.getElementById('teacherCountLabel').textContent = 'Loading...';
+  document.getElementById('adminTableBody').innerHTML = '<tr><td colspan="6" class="empty-row">Loading...</td></tr>';
+
+  const { ok, data } = await apiFetch('/api/admin/teachers');
+  if (!ok) {
+    showAlert('adminError', data.error || 'Failed to load teachers.');
+    return;
+  }
+
+  const teachers = data.teachers || [];
+  const pending  = teachers.filter(t => t.status === 'pending').length;
+  document.getElementById('teacherCountLabel').textContent =
+    `${teachers.length} teacher${teachers.length !== 1 ? 's' : ''} (${pending} pending)`;
+
+  const tbody = document.getElementById('adminTableBody');
+  if (teachers.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-row">No teachers registered yet.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = teachers.map(t => {
+    const requestedDate = t.requested_at ? new Date(t.requested_at).toLocaleDateString() : '-';
+    const statusBadge   = `<span class="status-badge status-${t.status}">${t.status}</span>`;
+    const actions = t.status === 'pending'
+      ? `<button class="btn btn-success btn-xs"  onclick="adminApprove('${t.id}')">Approve</button>
+         <button class="btn btn-danger  btn-xs"  onclick="adminReject('${t.id}')">Reject</button>`
+      : t.status === 'approved'
+      ? `<button class="btn btn-danger  btn-xs"  onclick="adminReject('${t.id}')">Revoke</button>`
+      : `<button class="btn btn-success btn-xs"  onclick="adminApprove('${t.id}')">Approve</button>`;
+    return `<tr>
+      <td>${esc(t.full_name)}</td>
+      <td>${esc(t.email)}</td>
+      <td>${esc(t.department || '-')}</td>
+      <td>${requestedDate}</td>
+      <td>${statusBadge}</td>
+      <td class="action-cell">${actions}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function adminApprove(userId) {
+  clearAlert('adminError');
+  setLoading(true, 'Approving...');
+  const { ok, data } = await apiFetch('/api/admin/approve', {
+    method: 'POST', body: JSON.stringify({ userId }),
+  });
+  setLoading(false);
+  if (!ok) { showAlert('adminError', data.error || 'Failed to approve.'); return; }
+  loadAdminTeachers();
+}
+
+async function adminReject(userId) {
+  clearAlert('adminError');
+  setLoading(true, 'Updating...');
+  const { ok, data } = await apiFetch('/api/admin/reject', {
+    method: 'POST', body: JSON.stringify({ userId }),
+  });
+  setLoading(false);
+  if (!ok) { showAlert('adminError', data.error || 'Failed to update.'); return; }
+  loadAdminTeachers();
+}
+
+// ── History ───────────────────────────────────────────────────────────────────
+async function loadHistory() {
+  const { ok, data } = await apiFetch('/api/exams');
+  if (!ok) return;
+
+  const exams = data.exams || [];
+  document.getElementById('historyCountLabel').textContent =
+    `${exams.length} exam${exams.length !== 1 ? 's' : ''}`;
+
+  if (exams.length === 0) {
+    document.getElementById('historyEmpty').classList.remove('hidden');
+    document.getElementById('historyTableCard').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('historyEmpty').classList.add('hidden');
+  document.getElementById('historyTableCard').style.display = '';
+
+  document.getElementById('historyTableBody').innerHTML = exams.map((e, i) => {
+    const date = new Date(e.created_at).toLocaleDateString('en-GB', {
+      day: '2-digit', month: 'short', year: 'numeric',
+    });
+    return `<tr>
+      <td>${i + 1}</td>
+      <td><strong>${esc(e.name)}</strong></td>
+      <td>${esc(e.roll_prefix)}</td>
+      <td>${e.pass_threshold}%</td>
+      <td>${date}</td>
+    </tr>`;
+  }).join('');
+}
+
+function goToHistory() {
+  goTo('screenHistory');
+  loadHistory();
+}
+
+function startNewExam() {
+  setup    = null;
+  students = [];
+  document.getElementById('setupForm').reset();
+  document.getElementById('questionSection').classList.add('hidden');
+  document.getElementById('questionRows').innerHTML = '';
+  document.getElementById('cloPreview').innerHTML   = '';
+  document.getElementById('rollPreview').textContent = '--';
+  goTo('screenSetup', 1);
 }
 
 // ── Setup screen ───────────────────────────────────────────────────────────────
@@ -281,7 +735,7 @@ function updateRollPreview() {
   const prefix = document.getElementById('rollPrefix').value.trim().toUpperCase();
   const num    = document.getElementById('startingRoll').value.trim();
   const el     = document.getElementById('rollPreview');
-  el.textContent = (prefix && num) ? `${prefix}-${num}` : '—';
+  el.textContent = (prefix && num) ? `${prefix}-${num}` : '--';
 }
 
 function renderQuestionRows() {
@@ -352,20 +806,24 @@ document.getElementById('setupForm').addEventListener('submit', async e => {
     questions.push({ no: i, clo, maxMarks: max });
   }
 
-  setup = { examName, rollPrefix, startingRoll, questions, passThreshold };
-
-  const res  = await fetch('/api/setup', {
+  setLoading(true, 'Setting up exam…');
+  const { ok, data } = await apiFetch('/api/setup', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(setup),
+    body: JSON.stringify({ examName, rollPrefix, startingRoll, questions, passThreshold }),
   });
-  const data = await res.json();
-  if (!data.success) return alert('Setup error: ' + (data.error || 'Unknown'));
+  setLoading(false);
 
-  // Init entry screen
-  students    = [];
-  currentRoll = startingRoll;
-  currentFile = null;
+  if (!ok) return alert('Setup error: ' + (data.error || 'Unknown'));
+
+  setup = {
+    examName, rollPrefix, startingRoll, questions, passThreshold,
+    examId:        data.examId,
+    questionIdMap: data.questionIdMap || {},
+  };
+
+  students     = [];
+  currentRoll  = startingRoll;
+  currentFile  = null;
   pendingMarks = null;
 
   initEntryScreen();
@@ -391,7 +849,6 @@ function getCurrentRollStr() {
   return `${setup.rollPrefix}-${num}`;
 }
 
-// ── Roll navigation buttons
 document.getElementById('prevRollBtn').addEventListener('click', () => {
   const inp = document.getElementById('currentRollNum');
   const v   = parseInt(inp.value, 10);
@@ -426,7 +883,7 @@ function setCurrentFile(f) {
   const el = document.getElementById('selectedFilename');
   el.textContent = `📷 ${f.name}  (${(f.size/1024).toFixed(0)} KB)`;
   el.classList.remove('hidden');
-  document.getElementById('dropIcon').textContent  = '✔️';
+  document.getElementById('dropIcon').textContent  = '✔';
   document.getElementById('dropTitle').textContent = 'Image selected';
   document.getElementById('processBtn').disabled   = false;
   pendingMarks = null;
@@ -437,35 +894,35 @@ function setCurrentFile(f) {
 // ── Process (OCR) button
 document.getElementById('processBtn').addEventListener('click', async () => {
   if (!currentFile) return;
-  setLoading(true);
+  setLoading(true, 'Running OCR…', 'Detecting orientation, preprocessing, and extracting marks. May take 20-60 seconds.');
   clearOcrStatus();
 
   const fd = new FormData();
-  fd.append('image', currentFile);
+  fd.append('image',  currentFile);
+  fd.append('examId', setup.examId || '');
 
   try {
-    const res  = await fetch('/api/upload', { method: 'POST', body: fd });
-    const data = await res.json();
+    const { ok, data } = await apiFetchForm('/api/upload', fd);
 
-    if (data.error) {
-      showOcrStatus('error', '❌ OCR Error: ' + data.error);
+    if (!ok || data.error) {
+      showOcrStatus('error', 'OCR Error: ' + (data.error || 'Unknown error'));
       return;
     }
 
     pendingMarks = data.marks;
     populateCurrentMarksRow(pendingMarks);
 
-    const allGood = pendingMarks.every(m => m.confidence >= 70);
+    const allGood  = pendingMarks.every(m => m.confidence >= 70);
     if (allGood) {
-      showOcrStatus('success', '✅ Marks extracted successfully. Review and click "Add Student".');
+      showOcrStatus('success', 'Marks extracted successfully. Review and click "Add Student".');
     } else {
       const lowCount = pendingMarks.filter(m => m.confidence < 70).length;
-      showOcrStatus('warn', `⚠️ ${lowCount} mark(s) have low OCR confidence (highlighted in yellow). Please verify.`);
+      showOcrStatus('warn', `${lowCount} mark(s) have low OCR confidence (highlighted in yellow). Please verify.`);
     }
 
     document.getElementById('addStudentBtn').disabled = false;
   } catch (err) {
-    showOcrStatus('error', '❌ Processing failed: ' + err.message);
+    showOcrStatus('error', 'Processing failed: ' + err.message);
   } finally {
     setLoading(false);
   }
@@ -487,7 +944,6 @@ function showOcrStatus(type, msg) {
 document.getElementById('addStudentBtn').addEventListener('click', async () => {
   const rollNo = getCurrentRollStr();
 
-  // Read marks from the editable table row
   const inputs = [...document.querySelectorAll('#currentMarksBody input.mark-input')];
   const marks  = setup.questions.map((q, i) => ({
     questionNo:  q.no,
@@ -501,21 +957,18 @@ document.getElementById('addStudentBtn').addEventListener('click', async () => {
   addStudentToList({ rollNo, marks });
   updateStudentCount();
 
-  // Persist to Supabase in the background; do not block the UI on failure.
-  try {
-    await fetch('/api/save_student', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ rollNo, marks }),
-    });
-  } catch (_) {
-    // Silent failure — data is still held in the browser for export.
-  }
-
-  // Enable export once we have at least one student
   document.getElementById('exportBtn').disabled = (students.length === 0);
 
-  // Advance roll number and reset for next student
+  // Persist to Supabase in the background
+  if (setup.examId) {
+    try {
+      await apiFetch('/api/save_student', {
+        method: 'POST',
+        body: JSON.stringify({ examId: setup.examId, rollNo, marks }),
+      });
+    } catch (_) {}
+  }
+
   const numInp = document.getElementById('currentRollNum');
   numInp.value = parseInt(numInp.value, 10) + 1;
   resetCurrentStudent();
@@ -535,14 +988,12 @@ function resetCurrentStudent() {
   document.getElementById('processBtn').disabled   = true;
   document.getElementById('addStudentBtn').disabled = true;
 
-  // Clear marks table row to zeros
   populateCurrentMarksRow(
     setup.questions.map(q => ({ questionNo: q.no, clo: q.clo, maxMarks: q.maxMarks, obtained: 0, confidence: 100 }))
   );
   clearOcrStatus();
 }
 
-// ── Clear button
 document.getElementById('clearBtn').addEventListener('click', resetCurrentStudent);
 
 // ── Current marks table ───────────────────────────────────────────────────────
@@ -562,7 +1013,7 @@ function getCloGroups() {
 
 function buildCurrentMarksTable() {
   const cloGroups = getCloGroups();
-  const head = document.getElementById('currentMarksHead');
+  const head      = document.getElementById('currentMarksHead');
 
   let r1 = '<tr>';
   cloGroups.forEach(g => {
@@ -583,7 +1034,6 @@ function buildCurrentMarksTable() {
   r2 += '<th></th><th></th><th></th></tr>';
 
   head.innerHTML = r1 + r2;
-  // Create the body row (initially empty — will be filled by populateCurrentMarksRow)
   document.getElementById('currentMarksBody').innerHTML = '<tr id="currentMarksRow"></tr>';
 }
 
@@ -592,7 +1042,6 @@ function populateCurrentMarksRow(marks) {
   const tr = document.getElementById('currentMarksRow');
   tr.innerHTML = '';
 
-  // Mark cells (editable)
   cloGroups.forEach(g => {
     g.questions.forEach(q => {
       const m    = marks.find(mk => mk.questionNo === q.no) ?? { obtained: 0, confidence: 100 };
@@ -620,7 +1069,6 @@ function populateCurrentMarksRow(marks) {
     });
   });
 
-  // CLO total cells (computed)
   cloGroups.forEach(g => {
     const td = document.createElement('td');
     td.className = 'col-computed col-clo-tot';
@@ -628,7 +1076,6 @@ function populateCurrentMarksRow(marks) {
     tr.appendChild(td);
   });
 
-  // Grand total, %, Result
   ['col-computed col-grand', 'col-computed col-pct', 'col-computed col-result'].forEach(cls => {
     const td = document.createElement('td');
     td.className = cls;
@@ -672,9 +1119,7 @@ function recomputeCurrentRow() {
   }
 }
 
-function fmt(n) { return n % 1 === 0 ? String(n) : n.toFixed(1); }
-
-// ── Students list table ───────────────────────────────────────────────────────
+// ── Students list ─────────────────────────────────────────────────────────────
 
 function buildStudentsListHead() {
   const cloGroups = getCloGroups();
@@ -705,24 +1150,20 @@ function addStudentToList(student) {
   const tbody     = document.getElementById('studentsBody');
   const cloGroups = getCloGroups();
   const totalMax  = setup.questions.reduce((s, q) => s + q.maxMarks, 0);
-  const rowNum    = students.length;   // already pushed before this call
+  const rowNum    = students.length;
 
-  // Show the table
   document.getElementById('studentsListScroll').style.display = '';
 
   const tr = document.createElement('tr');
 
-  // # — row number
   const tdNum = document.createElement('td');
   tdNum.textContent = rowNum;
   tr.appendChild(tdNum);
 
-  // Roll No
   const tdRoll = document.createElement('td');
   tdRoll.textContent = student.rollNo;
   tr.appendChild(tdRoll);
 
-  // Marks per question (in CLO order)
   let grand = 0;
   cloGroups.forEach(g => {
     g.questions.forEach(q => {
@@ -734,7 +1175,6 @@ function addStudentToList(student) {
     });
   });
 
-  // CLO totals
   cloGroups.forEach(g => {
     const cloTot = g.questions.reduce((s, q) => {
       const m = student.marks.find(mk => mk.questionNo === q.no) ?? { obtained: 0 };
@@ -764,16 +1204,14 @@ function addStudentToList(student) {
   tdRes.textContent = result;
   tr.appendChild(tdRes);
 
-  // Delete button
   const tdDel = document.createElement('td');
   const btn   = document.createElement('button');
   btn.className   = 'btn btn-danger btn-xs';
-  btn.textContent = '✕';
+  btn.textContent = 'x';
   btn.onclick     = () => {
     const idx = students.indexOf(student);
     if (idx > -1) students.splice(idx, 1);
     tr.remove();
-    // Re-number
     [...document.querySelectorAll('#studentsBody tr')].forEach((row, i) => {
       row.cells[0].textContent = i + 1;
     });
@@ -803,10 +1241,13 @@ document.getElementById('exportBtn').addEventListener('click', async () => {
   if (!students.length) return alert('No students added yet.');
 
   try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+
     const res = await fetch('/api/export', {
       method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ students }),
+      headers,
+      body:    JSON.stringify({ students, setup }),
     });
 
     if (!res.ok) {
@@ -829,19 +1270,16 @@ document.getElementById('exportBtn').addEventListener('click', async () => {
   }
 });
 
-// ── Start over ────────────────────────────────────────────────────────────────
-document.getElementById('startOverBtn').addEventListener('click', () => {
-  setup = null; students = []; currentFile = null; pendingMarks = null;
-  document.getElementById('setupForm').reset();
-  document.getElementById('questionSection').classList.add('hidden');
-  document.getElementById('questionRows').innerHTML = '';
-  document.getElementById('cloPreview').innerHTML   = '';
-  document.getElementById('rollPreview').textContent = '—';
-  document.getElementById('studentsBody').innerHTML  = '';
-  document.getElementById('studentsListScroll').style.display = 'none';
-  fileInput.value = '';
-  goTo('screenSetup', 1);
+// ── Keyboard shortcut: Enter submits login / signup ───────────────────────────
+document.getElementById('loginPassword').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
 });
+document.getElementById('signupPassword').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doSignup();
+});
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+restoreSession();
 </script>
 </body>
 </html>
