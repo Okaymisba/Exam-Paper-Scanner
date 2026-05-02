@@ -3,12 +3,6 @@ name: CI
 on:
   push:
     branches:
-      - master
-      - main
-      - "feature/**"
-  pull_request:
-    branches:
-      - master
       - main
 
 jobs:
@@ -74,14 +68,12 @@ jobs:
           path: coverage-integration.xml
 
   # ---------------------------------------------------------------------------
-  # E2E tests (optional - runs only when Playwright browsers can be installed)
+  # E2E tests (informational only - failures do not block deploy)
   # ---------------------------------------------------------------------------
   e2e:
     name: E2E Tests
     runs-on: ubuntu-latest
-    # E2E tests run after unit and integration pass
     needs: unit-and-integration
-    # E2E failures do not block the deploy step; they are informational
     continue-on-error: true
 
     env:
@@ -125,24 +117,20 @@ jobs:
           path: test-results/
 
   # ---------------------------------------------------------------------------
-  # Deploy to Vercel (only when all required tests pass on master/main)
+  # Deploy to Render (only after unit and integration tests pass)
   # ---------------------------------------------------------------------------
   deploy:
-    name: Trigger Vercel Deploy
+    name: Trigger Render Deploy
     runs-on: ubuntu-latest
     needs: unit-and-integration
-    # Only deploy on pushes to master or main - not on pull requests
-    if: >
-      github.event_name == 'push' &&
-      (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
 
     steps:
-      - name: Trigger Vercel deploy hook
+      - name: Trigger Render deploy hook
         run: |
-          if [ -z "${{ secrets.VERCEL_DEPLOY_HOOK_URL }}" ]; then
-            echo "VERCEL_DEPLOY_HOOK_URL secret is not set - skipping deploy trigger"
+          if [ -z "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" ]; then
+            echo "RENDER_DEPLOY_HOOK_URL secret is not set - skipping deploy"
             exit 0
           fi
-          curl -s -X POST "${{ secrets.VERCEL_DEPLOY_HOOK_URL }}" \
+          curl -s -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" \
             -o /dev/null \
             -w "HTTP status: %{http_code}\n"
