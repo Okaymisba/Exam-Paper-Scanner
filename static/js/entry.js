@@ -162,15 +162,22 @@ function showOcrStatus(type, msg) {
 document.getElementById('addStudentBtn').addEventListener('click', async () => {
   const rollNo = getCurrentRollStr();
 
-  /* Read current mark values from the input cells (supports manual entry). */
-  const inputs = [...document.querySelectorAll('#currentMarksBody input.mark-input')];
-  const marks  = setup.questions.map((q, i) => ({
-    questionNo: q.no,
-    clo:        q.clo,
-    maxMarks:   q.maxMarks,
-    obtained:   parseFloat(inputs[i]?.value) || 0,
-    confidence: null,
-  }));
+  /* Read current mark values by question number, not by DOM position.
+     Inputs are rendered in CLO-grouped order, which may differ from
+     setup.questions order, so positional indexing would assign marks
+     to the wrong questions. */
+  const marks = setup.questions.map(q => {
+    const inp = document.querySelector(
+      `#currentMarksBody input.mark-input[data-question-no="${q.no}"]`
+    );
+    return {
+      questionNo: q.no,
+      clo:        q.clo,
+      maxMarks:   q.maxMarks,
+      obtained:   parseFloat(inp?.value) || 0,
+      confidence: null,
+    };
+  });
 
   students.push({ rollNo, marks });
   addStudentToList({ rollNo, marks });

@@ -74,14 +74,15 @@ function populateCurrentMarksRow(marks) {
       const conf = m.confidence ?? 100;
       if (conf < 80) td.classList.add('low-conf');
 
-      const inp       = document.createElement('input');
-      inp.type        = 'number';
-      inp.min         = 0;
-      inp.max         = q.maxMarks;
-      inp.step        = 0.5;
-      inp.value       = m.obtained ?? 0;
-      inp.className   = 'cell-input mark-input';
-      inp.dataset.max = q.maxMarks;
+      const inp            = document.createElement('input');
+      inp.type             = 'number';
+      inp.min              = 0;
+      inp.max              = q.maxMarks;
+      inp.step             = 0.5;
+      inp.value            = m.obtained ?? 0;
+      inp.className        = 'cell-input mark-input';
+      inp.dataset.max        = q.maxMarks;
+      inp.dataset.questionNo = q.no;
       inp.addEventListener('input', () => {
         /* Clamp to valid range. */
         const v = parseFloat(inp.value);
