@@ -1,0 +1,37 @@
+{# Exam history screen: list of past exams, each row is clickable to reopen. #}
+<section class="screen hidden" id="screenHistory">
+  <div class="history-topbar">
+    <div>
+      <h2 class="history-title">My Exams</h2>
+      <span class="card-sub" id="historyCountLabel"></span>
+    </div>
+    <button class="btn btn-primary" onclick="startNewExam()">+ New Exam</button>
+  </div>
+
+  {# Empty state (no exams yet) #}
+  <div id="historyEmpty" class="card card-center hidden">
+    <div class="empty-icon">📋</div>
+    <h3>No exams yet</h3>
+    <p style="color:var(--gray-500);margin:8px 0 20px">Start your first exam to see it here.</p>
+    <button class="btn btn-primary" onclick="startNewExam()">+ New Exam</button>
+  </div>
+
+  {# Exams table (hidden while list is empty) #}
+  <div class="card" id="historyTableCard" style="display:none">
+    <div class="table-scroll">
+      <table class="marks-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Exam Name</th>
+            <th>Roll Prefix</th>
+            <th>Pass %</th>
+            <th>Created</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="historyTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>

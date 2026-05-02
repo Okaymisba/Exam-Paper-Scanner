@@ -1,0 +1,37 @@
+{# Admin panel: view and manage all teacher account requests. #}
+<section class="screen hidden" id="screenAdmin">
+  <div class="admin-topbar">
+    <h2 class="admin-title">Admin Panel</h2>
+    <span class="admin-sub" id="adminSub">Manage teacher access requests</span>
+  </div>
+
+  <div id="adminError" class="alert alert-error hidden" style="margin:0 0 16px"></div>
+
+  <div class="card">
+    <div class="card-header space-between">
+      <div>
+        <h3>Teacher Accounts</h3>
+        <span class="card-sub" id="teacherCountLabel">Loading...</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="loadAdminTeachers()">&#8635; Refresh</button>
+    </div>
+
+    <div class="table-scroll" id="adminTableWrap">
+      <table class="marks-table" id="adminTable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Department</th>
+            <th>Requested</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="adminTableBody">
+          <tr><td colspan="6" class="empty-row">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>

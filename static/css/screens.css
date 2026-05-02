@@ -1,0 +1,160 @@
+/*
+ * screens.css
+ * Styles for the application-level screens that sit outside the core exam
+ * workflow: authentication, pending/rejected status, admin panel, and the
+ * exam history list. Also includes the logged-in header user area.
+ */
+
+/* ==========================================================================
+   Auth screen (login / signup)
+   ========================================================================== */
+
+.auth-container {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 48px 16px;
+  min-height: calc(100vh - 80px);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 480px;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* ---------- Tab bar ---------- */
+.auth-tabs {
+  display: flex;
+  border-bottom: 2px solid var(--gray-200);
+  background: var(--gray-50);
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 14px 20px;
+  border: none;
+  background: transparent;
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--gray-500);
+  cursor: pointer;
+  transition: color var(--transition), background var(--transition);
+}
+.auth-tab:hover  { color: var(--primary); background: var(--primary-light); }
+.auth-tab.active { color: var(--primary); border-bottom: 3px solid var(--primary); margin-bottom: -2px; background: #fff; }
+
+/* ---------- Form panels ---------- */
+#formLogin,
+#formSignup { padding: 28px 32px 32px; }
+
+/* ---------- Inline alert (overrides general .alert for auth forms) ---------- */
+.alert {
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  font-size: .875rem;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+.alert-error   { background: var(--danger-light);  color: #991B1B; border: 1px solid #FECACA; }
+.alert-success { background: var(--success-light); color: #14532D; border: 1px solid #BBF7D0; }
+
+/* ==========================================================================
+   Header: logged-in user area
+   ========================================================================== */
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+}
+
+.user-avatar {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.25);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: .9rem; flex-shrink: 0;
+}
+
+.user-name {
+  font-size: .9rem; font-weight: 600; opacity: .92;
+  max-width: 160px; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* ==========================================================================
+   Status screens (pending approval / rejected)
+   ========================================================================== */
+
+.status-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 16px;
+  min-height: calc(100vh - 80px);
+}
+
+.status-icon { font-size: 3.5rem; margin-bottom: 16px; line-height: 1; }
+.status-msg  { color: var(--gray-500); max-width: 400px; margin: 8px auto 24px; line-height: 1.6; }
+
+/* ==========================================================================
+   Admin panel
+   ========================================================================== */
+
+.admin-topbar  { padding: 0 0 20px; }
+.admin-title   { font-size: 1.4rem; font-weight: 700; color: var(--gray-900); }
+.admin-sub     { font-size: .9rem; color: var(--gray-500); margin-top: 4px; display: block; }
+
+/* Status badges (used in admin teacher table) */
+.status-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: .78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.status-pending  { background: var(--warning-light); color: #92400E; }
+.status-approved { background: var(--success-light); color: #14532D; }
+.status-rejected { background: var(--danger-light);  color: #991B1B; }
+
+.action-cell { white-space: nowrap; display: flex; gap: 6px; align-items: center; }
+
+/* ==========================================================================
+   Exam history screen
+   ========================================================================== */
+
+.history-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0 20px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.history-title { font-size: 1.4rem; font-weight: 700; color: var(--gray-900); }
+
+.empty-icon { font-size: 2.5rem; margin-bottom: 12px; }
+
+/* Clickable exam rows */
+.history-row { cursor: pointer; transition: background 0.12s; }
+.history-row:hover { background: #f0f4ff; }
+
+.open-hint {
+  color: #4f6ef7;
+  font-weight: 600;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}

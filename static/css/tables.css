@@ -1,0 +1,220 @@
+/*
+ * tables.css
+ * All table-related styles: the main marks table, question config table,
+ * CLO column group headers, editable cell inputs, legend, and the
+ * table controls bar.
+ */
+
+/* ==========================================================================
+   Table controls bar (above the marks table)
+   ========================================================================== */
+
+.table-controls {
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 12px;
+}
+.table-hint { font-size: .8rem; color: var(--gray-400); }
+
+/* ==========================================================================
+   Scrollable table wrapper
+   ========================================================================== */
+
+.table-scroll {
+  overflow-x: auto;
+  border-radius: var(--radius);
+  border: 1px solid var(--gray-200);
+  margin-bottom: 24px;
+  max-height: 58vh;
+  overflow-y: auto;
+}
+
+/* ==========================================================================
+   Marks table (shared by current-student and students-list panels)
+   ========================================================================== */
+
+.marks-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .875rem;
+}
+
+/* Sticky header */
+.marks-table thead           { position: sticky; top: 0; z-index: 10; }
+.marks-table thead tr        { background: #1E3A5F; color: #fff; }
+.marks-table th {
+  padding: 10px 12px;
+  text-align: center;
+  font-weight: 600;
+  font-size: .8rem;
+  white-space: nowrap;
+  border-right: 1px solid rgba(255,255,255,.15);
+}
+.marks-table th:last-child { border-right: none; }
+
+/* Row styling */
+.marks-table tbody tr { border-bottom: 1px solid var(--gray-200); transition: background var(--transition); }
+.marks-table tbody tr:nth-child(even) { background: var(--gray-50); }
+.marks-table tbody tr:hover           { background: #F0F7FF; }
+
+/* Pass / fail row colouring */
+.marks-table tbody tr.row-pass       { background: #F0FDF4; }
+.marks-table tbody tr.row-fail       { background: #FFF5F5; }
+.marks-table tbody tr.row-pass:hover { background: #DCFCE7; }
+.marks-table tbody tr.row-fail:hover { background: #FEE2E2; }
+
+.marks-table td {
+  padding: 6px 8px;
+  text-align: center;
+  border-right: 1px solid var(--gray-200);
+}
+.marks-table td:last-child { border-right: none; }
+
+/* Low OCR confidence highlight */
+.marks-table td.low-conf {
+  background: #FFFBEB !important;
+  border: 1.5px solid #FCD34D;
+  position: relative;
+}
+.marks-table td.low-conf::after {
+  content: "⚠";
+  position: absolute; top: 2px; right: 3px;
+  font-size: .6rem; color: var(--warning); line-height: 1;
+}
+
+/* ---------- Editable cell inputs ---------- */
+.cell-input {
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: .875rem;
+  font-family: var(--font);
+  background: transparent;
+  text-align: center;
+  transition: all var(--transition);
+}
+.cell-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(37,99,235,.2);
+}
+.col-name .cell-input { text-align: left; }
+.col-roll .cell-input { text-align: center; font-weight: 600; }
+
+/* ---------- Computed (read-only) cells ---------- */
+.col-computed { font-weight: 700; font-size: .85rem; color: var(--gray-700); }
+.col-total    { color: var(--gray-900); font-size: .9rem; }
+.col-pct      { color: var(--gray-600); }
+
+.result-pass { color: var(--success); }
+.result-fail { color: var(--danger); }
+
+/* ---------- Column width constraints ---------- */
+.col-num    { width: 40px; font-size: .75rem; color: var(--gray-400); }
+.col-roll   { width: 80px; }
+.col-name   { min-width: 160px; text-align: left; }
+.col-mark   { width: 80px; }
+.col-total  { width: 70px; }
+.col-pct    { width: 80px; }
+.col-result { width: 70px; }
+.col-action { width: 44px; }
+
+/* ==========================================================================
+   CLO column group headers (marks table top row)
+   ========================================================================== */
+
+.th-clo-group {
+  background: #1E3A5F !important; color: #fff !important;
+  text-align: center; padding: 8px 6px !important;
+  font-size: .8rem !important;
+  border-right: 2px solid rgba(255,255,255,.25) !important;
+}
+.th-clo-group small { display: block; font-weight: 400; opacity: .8; }
+
+.th-q {
+  background: #2D6A9F; color: #fff !important;
+  font-size: .78rem !important; text-align: center;
+  border-right: 1px solid rgba(255,255,255,.2) !important;
+}
+.th-q small { display: block; font-weight: 400; opacity: .85; }
+
+.th-subtot {
+  background: #1B5E20; color: #fff !important;
+  font-size: .78rem !important; text-align: center;
+}
+
+.th-grand, .th-pct, .th-result, .th-action, .th-fixed, .th-name {
+  background: #1E3A5F; color: #fff !important;
+  font-size: .8rem !important; text-align: center;
+}
+
+/* CLO subtotal data cells */
+.col-clo-tot {
+  font-weight: 700; font-size: .85rem; color: #1B5E20;
+  background: rgba(27,94,32,.05);
+  border-left:  2px solid #81C784 !important;
+  border-right: 2px solid #81C784 !important;
+}
+
+/* ==========================================================================
+   Legend (pass / fail / low-confidence key)
+   ========================================================================== */
+
+.legend      { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: .8rem; color: var(--gray-600); }
+.legend-swatch {
+  width: 14px; height: 14px; border-radius: 3px;
+  border: 1px solid rgba(0,0,0,.1); flex-shrink: 0;
+}
+.low-conf-swatch { background: #FEF3C7; border-color: #FCD34D; }
+.pass-swatch     { background: #DCFCE7; border-color: #86EFAC; }
+.fail-swatch     { background: #FEE2E2; border-color: #FCA5A5; }
+
+/* ==========================================================================
+   Question config table (setup screen)
+   ========================================================================== */
+
+.question-section {
+  margin-top: 28px; padding: 22px 24px;
+  background: var(--primary-light);
+  border: 1px solid #BFDBFE;
+  border-radius: var(--radius);
+}
+.question-section.hidden { display: none; }
+.section-sub { font-size: .85rem; color: var(--gray-500); margin-bottom: 14px; margin-top: 2px; }
+
+.q-table-wrapper { overflow-x: auto; }
+.q-config-table  { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.q-config-table th {
+  background: var(--primary); color: #fff;
+  padding: 8px 14px; text-align: left;
+  font-weight: 600; font-size: .82rem;
+}
+.q-config-table td { padding: 6px 8px; border-bottom: 1px solid var(--gray-200); }
+.q-num { font-weight: 700; color: var(--primary-dark); width: 60px; }
+
+.q-input {
+  height: 36px;
+  border: 1.5px solid var(--gray-300);
+  border-radius: var(--radius-sm);
+  padding: 0 10px;
+  font-size: .9rem;
+  width: 120px;
+}
+.q-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(37,99,235,.15);
+}
+
+/* CLO summary preview strip below the question rows */
+.clo-preview {
+  margin-top: 14px;
+  font-size: .83rem;
+  color: var(--primary-dark);
+  background: rgba(37,99,235,.07);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  min-height: 28px;
+}

@@ -1,0 +1,75 @@
+{# Screen 1: exam setup form (name, roll config, question definitions). #}
+<section class="screen hidden" id="screenSetup">
+  <div class="card">
+    <div class="card-header space-between">
+      <div>
+        <h2>Exam Setup</h2>
+        <p>Configure the exam name, roll number series, and question structure.</p>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="goToHistory()">&larr; My Exams</button>
+    </div>
+
+    <form id="setupForm" novalidate>
+
+      <div class="form-grid two-col">
+        <div class="form-group">
+          <label for="examName">Exam / Subject Name <span class="req">*</span></label>
+          <input id="examName" type="text" placeholder="e.g. SE-209 CALD Mid Term" required/>
+        </div>
+        <div class="form-group">
+          <label for="passThreshold">Pass Percentage (%) <span class="req">*</span></label>
+          <input id="passThreshold" type="number" min="1" max="100" value="50" required/>
+        </div>
+      </div>
+
+      <div class="form-section-title">Roll Number Configuration</div>
+      <div class="form-grid three-col">
+        <div class="form-group">
+          <label for="rollPrefix">Department Code <span class="req">*</span></label>
+          <input id="rollPrefix" type="text" placeholder="e.g. SE, CS, EE" maxlength="10" required
+                 oninput="updateRollPreview()"/>
+          <span class="field-hint">Prefix before the dash</span>
+        </div>
+        <div class="form-group">
+          <label for="startingRoll">Starting Roll Number <span class="req">*</span></label>
+          <input id="startingRoll" type="number" min="1" placeholder="e.g. 24001" required
+                 oninput="updateRollPreview()"/>
+          <span class="field-hint">Digits only (e.g. 24001)</span>
+        </div>
+        <div class="form-group">
+          <label>Preview</label>
+          <div class="roll-preview" id="rollPreview">--</div>
+        </div>
+      </div>
+
+      <div class="form-section-title">Questions</div>
+      <div class="form-grid one-col">
+        <div class="form-group">
+          <label for="numQuestions">Total Number of Questions <span class="req">*</span></label>
+          <input id="numQuestions" type="number" min="1" max="30" placeholder="e.g. 4" required
+                 style="max-width:200px"/>
+        </div>
+      </div>
+
+      <div id="questionSection" class="question-section hidden">
+        <div class="q-table-wrapper">
+          <table class="q-config-table">
+            <thead>
+              <tr>
+                <th>Question</th>
+                <th>CLO Number <span class="req">*</span></th>
+                <th>Max Marks <span class="req">*</span></th>
+              </tr>
+            </thead>
+            <tbody id="questionRows"></tbody>
+          </table>
+        </div>
+        <div class="clo-preview" id="cloPreview"></div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary btn-lg">Start Entering Marks &rarr;</button>
+      </div>
+    </form>
+  </div>
+</section>

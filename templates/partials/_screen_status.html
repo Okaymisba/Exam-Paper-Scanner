@@ -1,0 +1,29 @@
+{# Pending approval screen. #}
+<section class="screen hidden" id="screenPending">
+  <div class="status-container">
+    <div class="card card-center">
+      <div class="status-icon">⏳</div>
+      <h2>Pending Approval</h2>
+      <p class="status-msg">
+        Your account request has been submitted and is waiting for admin review.
+        You will be able to log in once it is approved.
+      </p>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">Sign out</button>
+    </div>
+  </div>
+</section>
+
+{# Rejected / not approved screen. #}
+<section class="screen hidden" id="screenRejected">
+  <div class="status-container">
+    <div class="card card-center">
+      <div class="status-icon">🚫</div>
+      <h2>Account Not Approved</h2>
+      <p class="status-msg">
+        Your account request was not approved.
+        Please contact the administrator if you believe this is an error.
+      </p>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">Sign out</button>
+    </div>
+  </div>
+</section>

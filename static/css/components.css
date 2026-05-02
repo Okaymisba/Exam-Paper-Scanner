@@ -1,0 +1,315 @@
+/*
+ * components.css
+ * Reusable UI components: loading overlay, cards, form controls, buttons,
+ * drop zone, image preview, alerts, file list, summary pills, and the
+ * exam-setup layout helpers.
+ */
+
+/* ==========================================================================
+   Loading overlay
+   ========================================================================== */
+
+.loading-overlay {
+  position: fixed; inset: 0;
+  background: rgba(15, 23, 42, .65);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999;
+}
+.loading-overlay.hidden { display: none; }
+
+.spinner-box {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  padding: 48px 56px;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  max-width: 380px;
+}
+
+.spinner {
+  width: 56px; height: 56px;
+  border: 5px solid var(--gray-200);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+  margin: 0 auto 20px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.spinner-title  { font-size: 1.1rem; font-weight: 700; color: var(--gray-700); margin-bottom: 8px; }
+.spinner-sub    { font-size: .875rem; color: var(--gray-500); line-height: 1.5; }
+.spinner-status { font-size: .8rem; color: var(--gray-400); margin-top: 8px; }
+
+/* ==========================================================================
+   Cards
+   ========================================================================== */
+
+.card {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 36px 40px;
+}
+.card-full   { padding: 28px 32px; }
+.card-center { text-align: center; padding: 60px 48px; }
+
+.card-header { margin-bottom: 28px; }
+.card-header h2 { font-size: 1.4rem; font-weight: 700; color: var(--gray-900); margin-bottom: 4px; }
+.card-header p  { color: var(--gray-500); font-size: .93rem; }
+.card-header.space-between {
+  display: flex; justify-content: space-between;
+  align-items: flex-start; gap: 24px; flex-wrap: wrap;
+}
+.card-sub { font-size: .83rem; color: var(--gray-400); margin-left: 6px; }
+
+/* ==========================================================================
+   Forms and inputs
+   ========================================================================== */
+
+.form-grid      { display: grid; gap: 20px; }
+.two-col        { grid-template-columns: 1fr 1fr; }
+.three-col      { grid-template-columns: 1fr 1fr 1fr; }
+.one-col        { grid-template-columns: 1fr; }
+.max-marks-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+
+label {
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--gray-700);
+  letter-spacing: .01em;
+}
+.req { color: var(--danger); margin-left: 2px; }
+
+input[type="text"],
+input[type="number"] {
+  height: 42px;
+  border: 1.5px solid var(--gray-300);
+  border-radius: var(--radius-sm);
+  padding: 0 12px;
+  font-size: .95rem;
+  font-family: var(--font);
+  color: var(--gray-900);
+  background: #fff;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  width: 100%;
+}
+input[type="text"]:focus,
+input[type="number"]:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37,99,235,.15);
+}
+input.input-error { border-color: var(--danger); animation: shake .3s ease; }
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  25%      { transform: translateX(-4px); }
+  75%      { transform: translateX(4px); }
+}
+
+/* Max marks section */
+.max-marks-section {
+  margin-top: 28px;
+  padding: 24px;
+  background: var(--primary-light);
+  border-radius: var(--radius);
+  border: 1px solid #BFDBFE;
+}
+.max-marks-section.hidden { display: none; }
+
+/* Section label used inside question config and max marks */
+.section-title {
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+  margin-bottom: 16px;
+}
+
+/* Setup screen section heading (uppercase divider style) */
+.form-section-title {
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  margin: 28px 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--primary-light);
+}
+
+.field-hint {
+  font-size: .78rem;
+  color: var(--gray-400);
+  margin-top: 2px;
+}
+
+/* Roll number preview box (read-only display) */
+.roll-preview {
+  height: 42px;
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+  background: var(--primary-light);
+  letter-spacing: .05em;
+}
+
+/* ==========================================================================
+   Buttons
+   ========================================================================== */
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 22px;
+  border: none; border-radius: var(--radius-sm);
+  font-size: .93rem; font-weight: 600; font-family: var(--font);
+  cursor: pointer;
+  transition: all var(--transition);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+
+.btn-primary   { background: var(--primary); color: #fff; }
+.btn-primary:hover:not(:disabled)   { background: var(--primary-dark); box-shadow: 0 4px 12px rgba(37,99,235,.35); }
+
+.btn-success   { background: var(--success); color: #fff; }
+.btn-success:hover:not(:disabled)   { background: #15803D; box-shadow: 0 4px 12px rgba(22,163,74,.35); }
+
+.btn-secondary { background: var(--gray-100); color: var(--gray-700); border: 1.5px solid var(--gray-300); }
+.btn-secondary:hover:not(:disabled) { background: var(--gray-200); }
+
+.btn-ghost     { background: transparent; color: var(--gray-500); }
+.btn-ghost:hover:not(:disabled)     { color: var(--gray-700); }
+
+.btn-danger    { background: var(--danger); color: #fff; }
+.btn-danger:hover:not(:disabled)    { background: #B91C1C; }
+
+.btn-lg  { padding: 13px 30px; font-size: 1rem; }
+.btn-sm  { padding: 7px 14px; font-size: .85rem; }
+.btn-xs  { padding: 3px 8px; font-size: .8rem; }
+.btn-full { width: 100%; justify-content: center; }
+
+/* ---------- Form actions row ---------- */
+.form-actions { margin-top: 32px; }
+.form-actions.row    { display: flex; gap: 12px; align-items: center; }
+.form-actions.center { justify-content: center; }
+.form-actions:not(.row) { display: flex; }
+
+/* ==========================================================================
+   Summary pills
+   ========================================================================== */
+
+.summary-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+.pill {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  border: 1px solid #BFDBFE;
+  border-radius: 50px;
+  padding: 4px 14px;
+  font-size: .82rem;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   Drop zone (file upload area)
+   ========================================================================== */
+
+.drop-zone {
+  border: 2.5px dashed var(--gray-300);
+  border-radius: var(--radius-lg);
+  background: var(--gray-50);
+  padding: 60px 40px;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition);
+  position: relative;
+}
+.drop-zone:hover,
+.drop-zone.drag-over { border-color: var(--primary); background: var(--primary-light); }
+.drop-zone.drag-over { transform: scale(1.01); }
+.drop-zone.hidden    { display: none; }
+
+.file-input-hidden { position: absolute; width: 1px; height: 1px; opacity: 0; }
+
+.drop-icon  { font-size: 3rem; margin-bottom: 12px; display: block; }
+.drop-title { font-size: 1.15rem; font-weight: 700; color: var(--gray-700); margin-bottom: 6px; }
+.drop-sub   { color: var(--gray-500); font-size: .93rem; margin-bottom: 4px; }
+.drop-hint  { color: var(--gray-400); font-size: .8rem; }
+.link-text  { color: var(--primary); text-decoration: underline; cursor: pointer; }
+
+/* ==========================================================================
+   Image preview
+   ========================================================================== */
+
+.image-preview { text-align: center; margin-bottom: 4px; }
+.image-preview.hidden { display: none; }
+.image-preview img {
+  max-width: 100%; max-height: 420px;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--gray-200);
+  box-shadow: var(--shadow-sm);
+  display: block;
+  margin: 0 auto 14px;
+}
+
+/* ==========================================================================
+   Alerts
+   ========================================================================== */
+
+/* General alert (used for upload warnings, etc.) */
+.alert {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 14px 18px;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  font-size: .9rem;
+}
+.alert.hidden { display: none; }
+.alert-icon   { font-size: 1.1rem; flex-shrink: 0; }
+
+.alert-warning {
+  background: var(--warning-light);
+  border: 1px solid #FDE68A;
+  color: #92400E;
+}
+
+/* ==========================================================================
+   File list (upload queue display)
+   ========================================================================== */
+
+.file-list { margin: 16px 0 4px; border: 1px solid var(--gray-200); border-radius: var(--radius); overflow: hidden; }
+.file-list.hidden { display: none; }
+.file-count {
+  padding: 8px 14px;
+  background: var(--primary-light);
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--primary-dark);
+  border-bottom: 1px solid var(--gray-200);
+  margin: 0;
+}
+.file-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--gray-100);
+  font-size: .87rem;
+}
+.file-item:last-child { border-bottom: none; }
+.file-icon { font-size: 1.1rem; }
+.file-name { flex: 1; color: var(--gray-700); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-size { color: var(--gray-400); font-size: .78rem; flex-shrink: 0; }
+
+/* ==========================================================================
+   Success screen
+   ========================================================================== */
+
+.success-icon     { font-size: 4rem; margin-bottom: 16px; display: block; }
+.card-center h2   { font-size: 1.6rem; font-weight: 800; margin-bottom: 10px; }
+.success-msg      { color: var(--gray-500); max-width: 380px; margin: 0 auto 28px; }

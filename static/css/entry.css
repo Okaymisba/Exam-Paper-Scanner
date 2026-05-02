@@ -1,0 +1,190 @@
+/*
+ * entry.css
+ * Styles specific to the student-entry screen (screen 2): two-column layout,
+ * roll number row, compact table variant, OCR status, current totals display,
+ * and the saved-students list card.
+ */
+
+/* ---------- Screen width override ---------- */
+#screenEntry { max-width: 1300px; }
+
+/* ==========================================================================
+   Entry screen top bar
+   ========================================================================== */
+
+.entry-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.entry-topbar-left  { display: flex; align-items: center; gap: 14px; }
+.entry-topbar-right { display: flex; align-items: center; gap: 10px; }
+
+.entry-exam-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.entry-count-pill {
+  background: var(--gray-100);
+  border: 1px solid var(--gray-300);
+  border-radius: 50px;
+  padding: 3px 14px;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--gray-500);
+}
+.entry-count-pill.count-has-data {
+  background: var(--success-light);
+  border-color: #86EFAC;
+  color: var(--success);
+}
+
+/* ==========================================================================
+   Two-column layout (upload | marks)
+   ========================================================================== */
+
+.entry-columns {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+  align-items: start;
+}
+
+.entry-upload-card { padding: 24px 24px; }
+.entry-marks-card  { padding: 24px 28px; }
+
+.entry-upload-card .card-header { margin-bottom: 16px; }
+.entry-upload-card .card-header h3 { font-size: 1rem; font-weight: 700; color: var(--gray-900); }
+
+.entry-marks-card .card-header { margin-bottom: 12px; }
+.entry-marks-card .card-header h3 { font-size: 1rem; font-weight: 700; color: var(--gray-900); display: inline; }
+
+/* ==========================================================================
+   Roll number entry row
+   ========================================================================== */
+
+.roll-entry-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 14px;
+  background: var(--primary-light);
+  border: 1.5px solid #BFDBFE;
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+}
+
+.roll-prefix-display {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--primary-dark);
+  letter-spacing: .05em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.roll-num-input {
+  flex: 1;
+  height: 34px !important;
+  border: 1px solid var(--gray-300) !important;
+  border-radius: 4px !important;
+  padding: 0 8px !important;
+  font-size: .95rem !important;
+  font-weight: 700;
+  color: var(--primary-dark);
+  min-width: 0;
+}
+
+/* ---------- Compact drop zone inside the left panel ---------- */
+.entry-upload-card .drop-zone { padding: 28px 20px; }
+.entry-upload-card .drop-icon  { font-size: 2rem; margin-bottom: 8px; }
+.entry-upload-card .drop-title { font-size: .95rem; margin-bottom: 4px; }
+
+/* ---------- Selected filename display ---------- */
+.selected-filename {
+  font-size: .83rem;
+  color: var(--gray-600);
+  padding: 6px 10px;
+  background: var(--gray-100);
+  border-radius: var(--radius-sm);
+  margin: 8px 0 0;
+  word-break: break-all;
+}
+.selected-filename.hidden { display: none; }
+
+/* ==========================================================================
+   Entry screen action rows
+   ========================================================================== */
+
+.entry-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.entry-marks-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.entry-hint {
+  font-size: .8rem;
+  color: var(--gray-400);
+  line-height: 1.4;
+  flex: 1;
+  min-width: 140px;
+}
+
+/* ==========================================================================
+   OCR status message
+   ========================================================================== */
+
+.ocr-status-msg { padding: 10px 14px; border-radius: var(--radius-sm); font-size: .87rem; margin-bottom: 12px; }
+.ocr-status-msg.hidden  { display: none; }
+.ocr-status-success     { background: var(--success-light); color: #166534; border: 1px solid #86EFAC; }
+.ocr-status-warn        { background: var(--warning-light); color: #92400E; border: 1px solid #FDE68A; }
+.ocr-status-error       { background: var(--danger-light);  color: #991B1B; border: 1px solid #FCA5A5; }
+
+/* ==========================================================================
+   Current totals strip (below the current-student marks table)
+   ========================================================================== */
+
+.current-totals {
+  display: flex;
+  gap: 20px;
+  padding: 10px 16px;
+  background: var(--gray-50);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--gray-200);
+  font-size: .88rem;
+  margin-top: -12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+/* ==========================================================================
+   Compact table variant (used in the current-student panel)
+   ========================================================================== */
+
+.compact-table thead tr          { background: #1E3A5F; }
+.compact-table td, .compact-table th { padding: 7px 8px; }
+.compact-table .table-scroll     { max-height: none; margin-bottom: 12px; }
+
+/* ==========================================================================
+   Saved students list card (below the two-column section)
+   ========================================================================== */
+
+.students-list-card { padding: 20px 28px; margin-top: 0; }
+.students-list-card .card-header { margin-bottom: 14px; }
+.students-list-card .card-header h3 { font-size: 1rem; font-weight: 700; color: var(--gray-900); }
+.students-list-card .table-scroll   { max-height: 40vh; margin-bottom: 0; }

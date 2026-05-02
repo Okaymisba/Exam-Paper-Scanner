@@ -1,0 +1,13 @@
+{# Screen 3: export complete confirmation with navigation options. #}
+<section class="screen hidden" id="screenDone">
+  <div class="card card-center">
+    <div class="success-icon">&#10003;</div>
+    <h2>Export Complete!</h2>
+    <p class="success-msg">Excel file downloaded. Marks for all students have been saved.</p>
+    <div class="form-actions row center">
+      <button class="btn btn-ghost"   onclick="goTo('screenEntry',2)">&#8592; Back to Entry</button>
+      <button class="btn btn-primary" onclick="startNewExam()">New Exam</button>
+      <button class="btn btn-ghost"   onclick="goToHistory()">My Exams</button>
+    </div>
+  </div>
+</section>

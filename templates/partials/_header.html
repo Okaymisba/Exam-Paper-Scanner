@@ -1,0 +1,36 @@
+{# Sticky application header: brand, step indicator (exam workflow), logged-in user. #}
+<header class="app-header">
+  <div class="header-brand">
+    <span class="brand-icon">📝</span>
+    <div>
+      <h1 class="brand-name">OBE Exam Marks Extractor</h1>
+      <p class="brand-sub">Scan NED OBE sheets &rarr; extract marks &rarr; export Excel</p>
+    </div>
+  </div>
+
+  {# Only visible after a successful login. #}
+  <div class="header-right" id="headerRight" style="display:none">
+    <nav class="steps" id="stepIndicator" style="display:none">
+      <div class="step active" id="stepDot1" data-n="1">
+        <span class="step-num">1</span>
+        <span class="step-label">Setup</span>
+      </div>
+      <div class="step-connector"></div>
+      <div class="step" id="stepDot2" data-n="2">
+        <span class="step-num">2</span>
+        <span class="step-label">Enter Marks</span>
+      </div>
+      <div class="step-connector"></div>
+      <div class="step" id="stepDot3" data-n="3">
+        <span class="step-num">3</span>
+        <span class="step-label">Done</span>
+      </div>
+    </nav>
+
+    <div class="header-user">
+      <span class="user-avatar" id="userAvatar">T</span>
+      <span class="user-name"   id="userName"></span>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">Sign out</button>
+    </div>
+  </div>
+</header>

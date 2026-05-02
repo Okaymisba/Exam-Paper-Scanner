@@ -1,0 +1,64 @@
+{# Auth screen: login and account-request (signup) tabs. #}
+<section class="screen active" id="screenAuth">
+  <div class="auth-container">
+    <div class="auth-card card">
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tabLogin"  onclick="switchTab('login')">Sign In</button>
+        <button class="auth-tab"        id="tabSignup" onclick="switchTab('signup')">Request Account</button>
+      </div>
+
+      {# Login form #}
+      <div id="formLogin">
+        <div class="card-header">
+          <h2>Welcome back</h2>
+          <p>Sign in to access your exams and mark history.</p>
+        </div>
+        <div id="loginError" class="alert alert-error hidden"></div>
+        <div class="form-group">
+          <label for="loginEmail">Email</label>
+          <input id="loginEmail" type="email" placeholder="teacher@ned.edu.pk" autocomplete="email"/>
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <input id="loginPassword" type="password" placeholder="Your password" autocomplete="current-password"/>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary btn-lg btn-full" onclick="doLogin()">Sign In &rarr;</button>
+        </div>
+      </div>
+
+      {# Signup form #}
+      <div id="formSignup" class="hidden">
+        <div class="card-header">
+          <h2>Request an account</h2>
+          <p>Your request will be reviewed by an admin before you can log in.</p>
+        </div>
+        <div id="signupError"   class="alert alert-error   hidden"></div>
+        <div id="signupSuccess" class="alert alert-success hidden"></div>
+        <div class="form-grid two-col">
+          <div class="form-group">
+            <label for="signupName">Full Name <span class="req">*</span></label>
+            <input id="signupName" type="text" placeholder="Dr. Ayesha Khan"/>
+          </div>
+          <div class="form-group">
+            <label for="signupDept">Department</label>
+            <input id="signupDept" type="text" placeholder="e.g. SE, CS, EE"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="signupEmail">Email <span class="req">*</span></label>
+          <input id="signupEmail" type="email" placeholder="teacher@ned.edu.pk"/>
+        </div>
+        <div class="form-group">
+          <label for="signupPassword">Password <span class="req">*</span></label>
+          <input id="signupPassword" type="password" placeholder="At least 6 characters"/>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary btn-lg btn-full" onclick="doSignup()">Submit Request &rarr;</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>

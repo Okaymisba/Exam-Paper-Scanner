@@ -1,0 +1,100 @@
+{# Screen 2: student mark entry (OCR upload or manual input). #}
+<section class="screen hidden" id="screenEntry">
+
+  {# Top bar: exam title, student count, export and back buttons #}
+  <div class="entry-topbar">
+    <div class="entry-topbar-left">
+      <span id="entryExamTitle" class="entry-exam-title"></span>
+      <span id="entryStudentCount" class="entry-count-pill">0 students added</span>
+    </div>
+    <div class="entry-topbar-right">
+      <button id="exportBtn" class="btn btn-success" disabled>
+        &#8595; Export Excel
+      </button>
+      <button class="btn btn-ghost btn-sm" onclick="goTo('screenSetup',1)">&#8592; Setup</button>
+    </div>
+  </div>
+
+  {# Two-column layout: image upload on left, extracted marks on right #}
+  <div class="entry-columns">
+
+    {# Left panel: roll number and image upload #}
+    <div class="card entry-upload-card">
+      <div class="card-header">
+        <h3>Current Student</h3>
+      </div>
+
+      <div class="roll-entry-row">
+        <span class="roll-prefix-display" id="rollPrefixDisplay">SE-</span>
+        <input id="currentRollNum" type="number" class="roll-num-input"
+               placeholder="24001" min="1"/>
+        <button class="btn btn-ghost btn-sm" id="prevRollBtn" title="Previous roll no">&#8592;</button>
+        <button class="btn btn-ghost btn-sm" id="nextRollBtn" title="Next roll no">&#8594;</button>
+      </div>
+
+      <div id="dropZone" class="drop-zone" tabindex="0" role="button">
+        <div class="drop-icon" id="dropIcon">📷</div>
+        <p class="drop-title" id="dropTitle">Tap to take photo or choose image</p>
+        <p class="drop-hint">JPG &middot; PNG &middot; JPEG &nbsp;|&nbsp; Desktop: drag &amp; drop supported</p>
+        <p class="drop-hint" style="margin-top:6px;color:#e67e22;font-weight:600;">
+          &#128247; Hold phone upright &mdash; portrait orientation required
+        </p>
+        <input id="fileInput" type="file" accept="image/*" capture="environment" class="file-input-hidden"/>
+      </div>
+
+      <div id="selectedFilename" class="selected-filename hidden"></div>
+
+      <div class="entry-actions">
+        <button id="processBtn" class="btn btn-primary" disabled>
+          🔍 Extract Marks
+        </button>
+        <button id="clearBtn" class="btn btn-ghost btn-sm" style="margin-left:auto">
+          Clear
+        </button>
+      </div>
+    </div>
+
+    {# Right panel: editable extracted marks for the current student #}
+    <div class="card entry-marks-card">
+      <div class="card-header">
+        <h3>Extracted Marks <span class="card-sub">-- edit if needed</span></h3>
+      </div>
+
+      <div id="ocrStatusMsg" class="ocr-status-msg hidden"></div>
+
+      <div class="table-scroll">
+        <table class="marks-table compact-table" id="currentMarksTable">
+          <thead id="currentMarksHead"></thead>
+          <tbody id="currentMarksBody"></tbody>
+        </table>
+      </div>
+
+      <div class="current-totals" id="currentTotals"></div>
+
+      <div class="entry-marks-actions">
+        <button id="addStudentBtn" class="btn btn-success btn-lg" disabled>
+          &#10003; Add Student &amp; Next
+        </button>
+        <span class="entry-hint">
+          Review marks above, then click to save and move to the next roll number.
+        </span>
+      </div>
+    </div>
+
+  </div>
+
+  {# Students added so far in this session #}
+  <div class="card students-list-card" id="studentsListCard">
+    <div class="card-header space-between">
+      <h3>Added Students</h3>
+      <span class="card-sub" id="studentListSub">None yet</span>
+    </div>
+    <div class="table-scroll" id="studentsListScroll" style="display:none">
+      <table class="marks-table" id="studentsTable">
+        <thead id="studentsHead"></thead>
+        <tbody id="studentsBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</section>
