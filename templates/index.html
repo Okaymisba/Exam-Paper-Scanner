@@ -212,6 +212,7 @@
                 <th>Roll Prefix</th>
                 <th>Pass %</th>
                 <th>Created</th>
+                <th></th>
               </tr>
             </thead>
             <tbody id="historyTableBody"></tbody>
@@ -702,12 +703,13 @@ async function loadHistory() {
     const date = new Date(e.created_at).toLocaleDateString('en-GB', {
       day: '2-digit', month: 'short', year: 'numeric',
     });
-    return `<tr>
+    return `<tr class="history-row" onclick="loadExam('${esc(e.id)}')" title="Click to open and edit">
       <td>${i + 1}</td>
       <td><strong>${esc(e.name)}</strong></td>
       <td>${esc(e.roll_prefix)}</td>
       <td>${e.pass_threshold}%</td>
       <td>${date}</td>
+      <td><span class="open-hint">Open &rsaquo;</span></td>
     </tr>`;
   }).join('');
 }
@@ -715,6 +717,53 @@ async function loadHistory() {
 function goToHistory() {
   goTo('screenHistory');
   loadHistory();
+}
+
+async function loadExam(examId) {
+  setLoading(true, 'Loading exam…');
+  const { ok, data } = await apiFetch(`/api/exams/${examId}`);
+  setLoading(false);
+
+  if (!ok) { alert('Failed to load exam: ' + (data.error || 'Unknown error')); return; }
+
+  const exam       = data.exam;
+  const dbStudents = data.students || [];
+
+  setup = {
+    examName:      exam.name,
+    rollPrefix:    exam.roll_prefix,
+    startingRoll:  exam.starting_roll,
+    passThreshold: parseFloat(exam.pass_threshold),
+    questions:     exam.questions,   // [{no, clo, maxMarks}]
+    examId:        examId,
+    questionIdMap: {},
+  };
+
+  students     = [];
+  currentFile  = null;
+  pendingMarks = null;
+
+  initEntryScreen();
+
+  // Pre-populate the students list with saved records
+  dbStudents.forEach(s => {
+    students.push({ rollNo: s.rollNo, marks: s.marks, resultId: s.resultId });
+    addStudentToList({ rollNo: s.rollNo, marks: s.marks, resultId: s.resultId });
+  });
+
+  updateStudentCount();
+  document.getElementById('exportBtn').disabled = (students.length === 0);
+
+  // Advance the roll input past the last known student
+  if (dbStudents.length > 0) {
+    const lastNum = dbStudents.reduce((max, s) => {
+      const n = parseInt(s.rollNo.split('-').pop(), 10);
+      return n > max ? n : max;
+    }, setup.startingRoll - 1);
+    document.getElementById('currentRollNum').value = lastNum + 1;
+  }
+
+  goTo('screenEntry', 2);
 }
 
 function startNewExam() {
@@ -1062,6 +1111,7 @@ function populateCurrentMarksRow(marks) {
         if (!isNaN(v) && v > q.maxMarks) inp.value = q.maxMarks;
         if (!isNaN(v) && v < 0)          inp.value = 0;
         recomputeCurrentRow();
+        document.getElementById('addStudentBtn').disabled = false;
       });
 
       td.appendChild(inp);
@@ -1208,7 +1258,10 @@ function addStudentToList(student) {
   const btn   = document.createElement('button');
   btn.className   = 'btn btn-danger btn-xs';
   btn.textContent = 'x';
-  btn.onclick     = () => {
+  btn.onclick     = async () => {
+    if (student.resultId && setup.examId) {
+      await apiFetch(`/api/exams/${setup.examId}/students/${student.resultId}`, { method: 'DELETE' });
+    }
     const idx = students.indexOf(student);
     if (idx > -1) students.splice(idx, 1);
     tr.remove();

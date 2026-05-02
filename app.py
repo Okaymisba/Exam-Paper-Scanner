@@ -196,6 +196,31 @@ def api_exams():
         return jsonify({"error": str(exc)}), 500
 
 
+@app.route("/api/exams/<exam_id>", methods=["GET"])
+@require_auth
+def api_get_exam(exam_id):
+    """Return exam config (with questions) plus all saved student results."""
+    try:
+        exam = database.get_exam_with_questions(exam_id, request.user_jwt)
+        if not exam:
+            return jsonify({"error": "Exam not found"}), 404
+        students = database.get_exam_students(exam_id, request.user_jwt)
+        return jsonify({"exam": exam, "students": students})
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+
+@app.route("/api/exams/<exam_id>/students/<result_id>", methods=["DELETE"])
+@require_auth
+def api_delete_student(exam_id, result_id):
+    """Delete one student result from an exam (mark_entries cascade)."""
+    try:
+        database.delete_student_result(result_id, request.user_jwt)
+        return jsonify({"success": True})
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+
 # ── Exam workflow ─────────────────────────────────────────────────────────────
 
 @app.route("/api/setup", methods=["POST"])

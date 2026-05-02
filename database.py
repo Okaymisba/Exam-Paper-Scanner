@@ -306,6 +306,54 @@ def get_question_id_map(exam_id: str, jwt: str) -> dict[int, str]:
 
 # ── Student results ───────────────────────────────────────────────────────────
 
+def get_exam_students(exam_id: str, jwt: str) -> list[dict]:
+    """
+    Return all students and their marks for an exam, ordered by roll number.
+    """
+    authed = _authed_client(jwt)
+    rows = (
+        authed.table("exam_results")
+        .select(
+            "id, students(roll_no), "
+            "mark_entries(obtained_marks, ocr_confidence, questions(question_number, clo_number, max_marks))"
+        )
+        .eq("exam_id", exam_id)
+        .execute()
+        .data
+    )
+
+    result = []
+    for row in rows:
+        student_info = row.get("students") or {}
+        marks = [
+            {
+                "questionNo": me["questions"]["question_number"],
+                "clo":        me["questions"]["clo_number"],
+                "maxMarks":   float(me["questions"]["max_marks"]),
+                "obtained":   float(me["obtained_marks"]),
+                "confidence": me.get("ocr_confidence"),
+            }
+            for me in sorted(
+                row.get("mark_entries", []),
+                key=lambda m: m["questions"]["question_number"],
+            )
+        ]
+        result.append({
+            "resultId": row["id"],
+            "rollNo":   student_info.get("roll_no", ""),
+            "marks":    marks,
+        })
+
+    result.sort(key=lambda r: r["rollNo"])
+    return result
+
+
+def delete_student_result(result_id: str, jwt: str) -> None:
+    """Delete one exam_result row (mark_entries cascade automatically)."""
+    authed = _authed_client(jwt)
+    authed.table("exam_results").delete().eq("id", result_id).execute()
+
+
 def save_student_result(exam_id: str, student_roll_no: str,
                         marks: list[dict],
                         question_id_map: dict[int, str],
