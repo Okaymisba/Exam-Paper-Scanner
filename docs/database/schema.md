@@ -36,7 +36,7 @@ Stores one record per exam session configured by a teacher. Each exam is owned b
 | Column | Type | Nullable | Default | Description |
 |---|---|---|---|---|
 | id | UUID | No | gen_random_uuid() | Primary key |
-| teacher_id | UUID | No | | FK to auth.users(id), the owning teacher |
+| teacher_id | UUID | Yes | NULL | FK to auth.users(id), the owning teacher. Nullable at DB level (column added via ALTER TABLE); always set by the application. |
 | name | VARCHAR(255) | No | | Exam or subject name |
 | pass_threshold | NUMERIC(5,2) | No | | Minimum passing percentage (1 to 100) |
 | roll_prefix | VARCHAR(20) | No | | Department code prefix (e.g., SE, CS) |
@@ -226,6 +226,22 @@ WHERE  er.exam_id = '<exam_uuid>'
 GROUP  BY s.roll_no, e.pass_threshold
 ORDER  BY s.roll_no;
 ```
+
+---
+
+## Indexes
+
+The following indexes are created by the migrations to support efficient foreign key lookups:
+
+| Index | Table | Column(s) |
+|---|---|---|
+| idx_questions_exam_id | questions | exam_id |
+| idx_exam_results_exam_id | exam_results | exam_id |
+| idx_exam_results_student_id | exam_results | student_id |
+| idx_mark_entries_result_id | mark_entries | result_id |
+| idx_mark_entries_question_id | mark_entries | question_id |
+
+Primary keys and unique constraints are indexed automatically by PostgreSQL.
 
 ---
 

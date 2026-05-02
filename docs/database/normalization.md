@@ -202,7 +202,9 @@ An intermediate exam_results table links students to exams (capturing which stud
 
 ---
 
-## Final 3NF Schema
+## Final 3NF Schema (Phase 1)
+
+The tables below represent the schema produced by the Phase 1 normalization of exam data. `teacher_id` is added to `exams` in Phase 2 (see below).
 
 ### exams
 
@@ -302,6 +304,20 @@ Additionally, the existing `exams` table gains:
 |---|---|
 | teacher_id | The user_id of the teacher who created this exam |
 
+### Formal Table: teacher_profiles
+
+| Column | Type | Constraints |
+|---|---|---|
+| id | UUID | Primary Key, FK to auth.users(id) |
+| full_name | VARCHAR(255) | NOT NULL |
+| email | VARCHAR(255) | NOT NULL, UNIQUE |
+| department | VARCHAR(100) | Nullable |
+| role | VARCHAR(20) | NOT NULL, default 'teacher', CHECK IN ('teacher', 'admin') |
+| status | VARCHAR(20) | NOT NULL, default 'pending', CHECK IN ('pending', 'approved', 'rejected') |
+| requested_at | TIMESTAMPTZ | NOT NULL, default NOW() |
+| reviewed_at | TIMESTAMPTZ | Nullable |
+| reviewed_by | UUID | Nullable, FK to auth.users(id) |
+
 ### Normalization of teacher_profiles
 
 **Un-normalized consideration:**
@@ -344,6 +360,20 @@ The table is in 3NF.
 **Relationship to exams:**
 
 Adding `teacher_id` to the `exams` table introduces a foreign key reference from `exams` to `auth.users`. This does not affect the normalization of `exams` because `teacher_id` is a foreign key attribute that depends directly on the exam's primary key. All other attributes of `exams` (name, pass_threshold, roll_prefix, starting_roll) remain dependent only on `id`.
+
+### Updated Table: exams (after Phase 2)
+
+| Column | Type | Constraints |
+|---|---|---|
+| id | UUID | Primary Key, default gen_random_uuid() |
+| teacher_id | UUID | Nullable, FK to auth.users(id) |
+| name | VARCHAR(255) | NOT NULL |
+| pass_threshold | NUMERIC(5,2) | NOT NULL, between 1 and 100 |
+| roll_prefix | VARCHAR(20) | NOT NULL |
+| starting_roll | INTEGER | NOT NULL, > 0 |
+| created_at | TIMESTAMPTZ | Default NOW() |
+
+`teacher_id` is nullable at the database level because the column was added to an existing table via `ALTER TABLE`. All exams created by the application after migration 002 always have `teacher_id` set.
 
 ### Updated Entity Relationship Summary
 
