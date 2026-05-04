@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OBE Exam Marks Extractor — Docs</title>
+  <meta name="description" content="Documentation for the OBE Exam Marks Extractor — OCR-powered marks extraction and admin panel for teachers." />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- ── Sidebar overlay (mobile) ── -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- ═══════════════════════════════════════════════
+     HEADER
+════════════════════════════════════════════════ -->
+<header class="doc-header">
+  <button class="icon-btn hamburger-btn" id="hamburgerBtn" aria-label="Toggle sidebar">☰</button>
+
+  <a href="#home" class="header-logo" data-goto="home">
+    <div class="header-logo-icon">📋</div>
+    <span class="header-logo-text">
+      ExamMarks<span class="header-logo-badge">Docs</span>
+    </span>
+  </a>
+
+  <div class="header-search">
+    <span class="header-search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="Search docs… (Press /)" autocomplete="off" spellcheck="false" />
+    <div class="search-results hidden" id="searchResults"></div>
+  </div>
+
+  <div class="header-actions">
+    <button class="icon-btn" id="themeBtn" title="Toggle dark mode">🌙</button>
+    <a class="icon-btn" href="https://github.com/Okaymisba/Exam-Paper-Scanner" target="_blank" rel="noopener" title="GitHub">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.1 3.3 9.4 7.9 10.9.58.1.79-.25.79-.56v-2c-3.21.7-3.89-1.54-3.89-1.54-.52-1.34-1.28-1.7-1.28-1.7-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.56-.29-5.25-1.28-5.25-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.04 0 0 .97-.31 3.18 1.19a11.1 11.1 0 0 1 2.9-.39c.98 0 1.97.13 2.9.39 2.2-1.5 3.17-1.19 3.17-1.19.63 1.58.23 2.75.11 3.04.74.81 1.19 1.84 1.19 3.1 0 4.43-2.7 5.41-5.27 5.7.41.36.78 1.07.78 2.15v3.19c0 .31.21.67.8.56C20.21 21.4 23.5 17.1 23.5 12 23.5 5.65 18.35.5 12 .5z"/>
+      </svg>
+    </a>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════
+     LAYOUT
+════════════════════════════════════════════════ -->
+<div class="doc-layout">
+
+  <!-- ── Sidebar ── -->
+  <nav class="doc-sidebar" id="sidebar">
+
+    <div class="sidebar-group">
+      <div class="sidebar-group-label">Introduction</div>
+      <button class="sidebar-link active" data-section="home">
+        <span class="sidebar-link-icon">🏠</span> Home
+      </button>
+      <button class="sidebar-link" data-section="quickstart">
+        <span class="sidebar-link-icon">⚡</span> Quick Start
+      </button>
+    </div>
+
+    <hr class="sidebar-divider" />
+
+    <div class="sidebar-group">
+      <div class="sidebar-group-label">Using the App</div>
+      <button class="sidebar-link" data-section="user-guide">
+        <span class="sidebar-link-icon">📖</span> User Guide
+      </button>
+      <button class="sidebar-link" data-section="ocr">
+        <span class="sidebar-link-icon">🔬</span> OCR Guide
+      </button>
+    </div>
+
+    <hr class="sidebar-divider" />
+
+    <div class="sidebar-group">
+      <div class="sidebar-group-label">Technical</div>
+      <button class="sidebar-link" data-section="api">
+        <span class="sidebar-link-icon">⚙️</span> API Reference
+      </button>
+      <button class="sidebar-link" data-section="dev">
+        <span class="sidebar-link-icon">💻</span> Developer Guide
+      </button>
+    </div>
+
+    <hr class="sidebar-divider" />
+
+    <div class="sidebar-group">
+      <div class="sidebar-group-label">Project</div>
+      <a class="sidebar-link" href="https://github.com/Okaymisba/Exam-Paper-Scanner" target="_blank" rel="noopener">
+        <span class="sidebar-link-icon">⭐</span> GitHub
+      </a>
+      <a class="sidebar-link" href="https://github.com/Okaymisba/Exam-Paper-Scanner/issues" target="_blank" rel="noopener">
+        <span class="sidebar-link-icon">🐛</span> Report Issue
+      </a>
+    </div>
+
+  </nav>
+
+  <!-- ── Main ── -->
+  <main class="doc-main">
+    <div class="doc-content">
+      <article class="doc-article">
+
+
+        <!-- ═══════════════════════════════════════════
+             HOME
+        ════════════════════════════════════════════ -->
+        <section class="doc-section active" id="home">
+
+          <div class="hero">
+            <div class="hero-badge">📋 Documentation v1.0</div>
+            <h1>OBE Exam Marks<br>Extractor</h1>
+            <p>
+              An OCR-powered tool for teachers to upload exam sheet images,
+              automatically extract student marks using GPT-4o vision, and
+              export results to Excel — all from a clean web interface.
+            </p>
+            <div class="hero-actions">
+              <button class="btn-hero-primary" data-goto="quickstart">
+                ⚡ Get Started
+              </button>
+              <button class="btn-hero-ghost" data-goto="api">
+                ⚙️ API Reference
+              </button>
+            </div>
+          </div>
+
+          <div class="page-header">
+            <div class="page-badge">📦 What is this?</div>
+            <h1>Overview</h1>
+            <p class="page-description">
+              A full-stack web app that automates the tedious task of entering
+              exam marks from physical answer sheets.
+            </p>
+          </div>
+
+          <h2 id="how-it-works">How It Works</h2>
+          <div class="steps">
+            <div class="step">
+              <div class="step-number">1</div>
+              <div class="step-body">
+                <div class="step-title">Teacher signs up &amp; gets approved</div>
+                <div class="step-desc">Create an account with your department info. An admin approves it before you can log in.</div>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">2</div>
+              <div class="step-body">
+                <div class="step-title">Create an exam</div>
+                <div class="step-desc">Enter subject name, code, number of questions, max marks per question, and CLO mapping.</div>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">3</div>
+              <div class="step-body">
+                <div class="step-title">Upload exam sheet images</div>
+                <div class="step-desc">Drag &amp; drop or select JPG/PNG images of completed answer sheets. GPT-4o extracts the marks automatically.</div>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">4</div>
+              <div class="step-body">
+                <div class="step-title">Verify &amp; save</div>
+                <div class="step-desc">Review OCR results, correct any errors, assign a roll number, and save the student's record.</div>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">5</div>
+              <div class="step-body">
+                <div class="step-title">Export to Excel</div>
+                <div class="step-desc">Download a formatted Excel file with all students, marks per question, total, percentage, and CLO breakdown.</div>
+              </div>
+            </div>
+          </div>
+
+          <h2 id="key-features">Key Features</h2>
+          <div class="feature-grid">
+            <div class="feature-card">
+              <span class="feature-card-icon">🤖</span>
+              <div class="feature-card-title">GPT-4o OCR</div>
+              <div class="feature-card-desc">Uses OpenAI's vision model to read handwritten exam sheets with high accuracy.</div>
+            </div>
+            <div class="feature-card">
+              <span class="feature-card-icon">📊</span>
+              <div class="feature-card-title">Excel Export</div>
+              <div class="feature-card-desc">One-click export to formatted Excel with marks, totals, percentages, and CLO grades.</div>
+            </div>
+            <div class="feature-card">
+              <span class="feature-card-icon">🛡️</span>
+              <div class="feature-card-title">Admin Panel</div>
+              <div class="feature-card-desc">Super admin can approve/reject teacher accounts and manage all users.</div>
+            </div>
+            <div class="feature-card">
+              <span class="feature-card-icon">📚</span>
+              <div class="feature-card-title">Exam History</div>
+              <div class="feature-card-desc">All past exams are saved. Reload any exam to add students or re-export results.</div>
+            </div>
+            <div class="feature-card">
+              <span class="feature-card-icon">🔒</span>
+              <div class="feature-card-title">Secure Auth</div>
+              <div class="feature-card-desc">JWT-based authentication with Supabase. Each teacher only sees their own exams.</div>
+            </div>
+            <div class="feature-card">
+              <span class="feature-card-icon">📱</span>
+              <div class="feature-card-title">Responsive UI</div>
+              <div class="feature-card-desc">Works on desktop and tablet. Upload photos directly from your phone camera.</div>
+            </div>
+          </div>
+
+          <h2 id="tech-stack">Tech Stack</h2>
+          <div class="tech-stack">
+            <div class="tech-badge"><span class="tech-badge-icon">🐍</span> Python / Flask</div>
+            <div class="tech-badge"><span class="tech-badge-icon">🌐</span> HTML / CSS / JavaScript</div>
+            <div class="tech-badge"><span class="tech-badge-icon">🤖</span> OpenAI GPT-4o Vision</div>
+            <div class="tech-badge"><span class="tech-badge-icon">🗄️</span> Supabase (PostgreSQL)</div>
+            <div class="tech-badge"><span class="tech-badge-icon">🔑</span> Supabase Auth (JWT)</div>
+            <div class="tech-badge"><span class="tech-badge-icon">📋</span> openpyxl</div>
+          </div>
+
+          <div class="callout callout-info">
+            <span class="callout-icon">💡</span>
+            <div class="callout-body">
+              <strong>New to the app?</strong>
+              Jump to the <button class="sidebar-link" style="display:inline;padding:0;border:none;background:none;color:var(--primary);font-weight:600;cursor:pointer;font-family:var(--font);text-decoration:underline;" data-section="quickstart">Quick Start</button> guide to get up and running in 5 minutes.
+            </div>
+          </div>
+
+        </section>
+
+
+        <!-- ═══════════════════════════════════════════
+             QUICK START
+        ════════════════════════════════════════════ -->
+        <section class="doc-section" id="quickstart">
+
+          <div class="page-header">
+            <div class="page-badge">⚡ Getting Started</div>
+            <h1>Quick Start</h1>
+            <p class="page-description">Go from zero to extracting your first exam marks in under 5 minutes.</p>
+          </div>
+
+          <h2 id="qs-signup">1. Create Your Account</h2>
+          <p>Go to the app's home page and click <strong>Sign Up</strong>. Fill in your:</p>
+          <ul>
+            <li><strong>Full Name</strong> — displayed in your profile and exports</li>
+            <li><strong>Email</strong> — used for login (must be unique)</li>
+            <li><strong>Password</strong> — minimum 6 characters</li>
+            <li><strong>Department</strong> — e.g., "Computer Science"</li>
+          </ul>
+
+          <div class="callout callout-warning">
+            <span class="callout-icon">⏳</span>
+            <div class="callout-body">
+              <strong>Waiting for approval</strong>
+              New accounts start as <code>pending</code>. You cannot log in until an admin approves your account. This usually takes less than 24 hours.
+            </div>
+          </div>
+
+          <h2 id="qs-login">2. Log In</h2>
+          <p>Once approved, enter your email and password on the login screen. Your session is saved in the browser — you won't need to log in again unless you explicitly log out.</p>
+
+          <h2 id="qs-exam">3. Create Your First Exam</h2>
+          <p>Click <strong>New Exam</strong> from the home screen and fill in the exam details:</p>
+          <div class="steps">
+            <div class="step">
+              <div class="step-number">1</div>
+              <div class="step-body">
+                <div class="step-title">Subject Name &amp; Code</div>
+                <div class="step-desc">e.g., "Data Structures" and "CS-201". The code appears in Excel headers.</div>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">2</div>
+              <div class="step-body">
+                <div class="step-title">Number of Questions</div>
+                <div class="step-desc">How many questions are on the exam sheet. This determines how many mark columns appear.</div>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">3</div>
+              <div class="step-body">
+                <div class="step-title">Max Marks Per Question</div>
+                <div class="step-desc">Enter the maximum possible marks for each question. The OCR uses these to validate extracted values.</div>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">4</div>
+              <div class="step-body">
+                <div class="step-title">CLO Mapping (Optional)</div>
+                <div class="step-desc">Map each question to a Course Learning Outcome (CLO). Used to generate CLO-wise grade breakdowns in the export.</div>
+              </div>
+            </div>
+          </div>
+
+          <h2 id="qs-upload">4. Upload &amp; Extract</h2>
+          <p>On the entry screen, drag &amp; drop exam sheet images (or click to browse). For each image:</p>
+          <ul>
+            <li>GPT-4o analyzes the image and fills in the marks</li>
+            <li>Review the extracted marks — edit any that look wrong</li>
+            <li>Enter (or confirm) the student's roll number</li>
+            <li>Click <strong>Save Student</strong></li>
+          </ul>
+
+          <div class="callout callout-success">
+            <span class="callout-icon">✅</span>
+            <div class="callout-body">
+              <strong>You're done!</strong>
+              Repeat for all students, then click <strong>Export Excel</strong> to download your results file.
+            </div>
+          </div>
+
+          <h2 id="qs-rollno">Roll Number Format</h2>
+          <p>Roll numbers follow the pattern: <code>PREFIX-YYNNN</code></p>
+          <ul>
+            <li><strong>Prefix</strong> — your program code, e.g., <code>SE</code>, <code>CS</code>, <code>EE</code></li>
+            <li><strong>YY</strong> — 2-digit batch year, e.g., <code>24</code> for 2024</li>
+            <li><strong>NNN</strong> — 3-digit student number, e.g., <code>001</code></li>
+          </ul>
+          <p>Example: <code>SE-24001</code>, <code>CS-23015</code></p>
+
+          <div class="callout callout-info">
+            <span class="callout-icon">💡</span>
+            <div class="callout-body">
+              <strong>Tip</strong>
+              The roll number prefix and batch year are set once during exam setup and auto-incremented. You only need to confirm the number part, not type the full string every time.
+            </div>
+          </div>
+
+        </section>
+
+
+        <!-- ═══════════════════════════════════════════
+             USER GUIDE
+        ════════════════════════════════════════════ -->
+        <section class="doc-section" id="user-guide">
+
+          <div class="page-header">
+            <div class="page-badge">📖 User Guide</div>
+            <h1>User Guide</h1>
+            <p class="page-description">Detailed instructions for every feature of the application.</p>
+          </div>
+
+          <h2 id="ug-exam-setup">Exam Setup</h2>
+          <p>Every time you start a new exam, you set up a configuration that defines how marks are extracted and displayed.</p>
+
+          <h3 id="ug-fields">Required Fields</h3>
+          <table class="params-table">
+            <thead>
+              <tr><th>Field</th><th>Description</th><th>Example</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>Subject Name</code></td><td>Full name of the subject</td><td>Data Structures &amp; Algorithms</td></tr>
+              <tr><td><code>Subject Code</code></td><td>Short code for the subject</td><td>CS-301</td></tr>
+              <tr><td><code>Exam Name</code></td><td>The exam identifier</td><td>Mid-Term 2024</td></tr>
+              <tr><td><code>No. of Questions</code></td><td>Total questions on the sheet</td><td>5</td></tr>
+              <tr><td><code>Max Marks (per Q)</code></td><td>Maximum marks for each question</td><td>10, 20, 15, 25, 10</td></tr>
+              <tr><td><code>Roll No. Prefix</code></td><td>Program code for roll numbers</td><td>SE</td></tr>
+              <tr><td><code>Batch Year</code></td><td>Two-digit year of the batch</td><td>24</td></tr>
+              <tr><td><code>Starting Number</code></td><td>Roll number to begin with</td><td>001</td></tr>
+            </tbody>
+          </table>
+
+          <h3 id="ug-clo">CLO Mapping</h3>
+          <p>After entering the number of questions, you can optionally map each question to a CLO (Course Learning Outcome). This is used to generate CLO-level statistics in the Excel export, which is required for OBE-compliant reporting.</p>
+
+          <div class="callout callout-info">
+            <span class="callout-icon">📌</span>
+            <div class="callout-body">
+              <strong>What is a CLO?</strong>
+              A Course Learning Outcome is a measurable statement of what students should know or be able to do after completing the course. Each question tests one or more CLOs.
+            </div>
+          </div>
+
+          <h2 id="ug-upload">Uploading Exam Sheets</h2>
+          <p>The upload screen accepts <strong>JPG, PNG, or WebP</strong> images, up to <strong>10 MB</strong> each.</p>
+
+          <h3 id="ug-drag-drop">Drag &amp; Drop</h3>
+          <p>Drag image files directly onto the dashed drop zone. You can drop multiple files at once — they will queue up and process one by one.</p>
+
+          <h3 id="ug-batch">Batch Upload</h3>
+          <p>Select multiple files by holding <kbd>Ctrl</kbd> (or <kbd>Cmd</kbd> on Mac) when clicking files in the browser dialog. Each image is processed sequentially.</p>
+
+          <div class="callout callout-warning">
+            <span class="callout-icon">⚠️</span>
+            <div class="callout-body">
+              <strong>One student per image</strong>
+              Each image should show a single student's answer sheet. Uploading a sheet with multiple students' answers in one image will produce incorrect results.
+            </div>
+          </div>
+
+          <h2 id="ug-marks-entry">Reviewing Extracted Marks</h2>
+          <p>After OCR completes, each question's marks appear in an editable table. The confidence score shows how certain the model is:</p>
+          <ul>
+            <li><strong>Green (&gt;85%)</strong> — high confidence, likely correct</li>
+            <li><strong>Yellow (50–85%)</strong> — medium confidence, check visually</li>
+            <li><strong>Red (&lt;50%)</strong> — low confidence, manual entry recommended</li>
+          </ul>
+          <p>Click any mark cell to edit it. Totals and percentages update automatically.</p>
+
+          <h2 id="ug-save">Saving a Student Record</h2>
+          <ol>
+            <li>Confirm or correct extracted marks</li>
+            <li>Enter the student's roll number (auto-incremented from your exam config)</li>
+            <li>Click <strong>Save Student</strong></li>
+            <li>The student appears in the table at the bottom of the screen</li>
+            <li>Upload the next image</li>
+          </ol>
+
+          <h3 id="ug-delete">Deleting a Student Record</h3>
+          <p>Find the student in the table and click the red delete icon (🗑) on their row. This permanently removes their data from the current exam session.</p>
+
+          <h2 id="ug-export">Exporting to Excel</h2>
+          <p>Click <strong>Export Excel</strong> at the top of the entry screen. The download starts immediately. The Excel file contains:</p>
+          <table class="params-table">
+            <thead>
+              <tr><th>Column</th><th>Description</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>Roll No</code></td><td>Student's roll number</td></tr>
+              <tr><td><code>Q1, Q2, …</code></td><td>Marks for each question</td></tr>
+              <tr><td><code>Total</code></td><td>Sum of all question marks</td></tr>
+              <tr><td><code>Max</code></td><td>Maximum possible total marks</td></tr>
+              <tr><td><code>Percentage</code></td><td>Total / Max × 100</td></tr>
+              <tr><td><code>CLO-1, CLO-2, …</code></td><td>Aggregated marks per CLO (if mapped)</td></tr>
+              <tr><td><code>Grade</code></td><td>Letter grade based on percentage</td></tr>
+            </tbody>
+          </table>
+
+          <h2 id="ug-history">Exam History</h2>
+          <p>All your past exams are listed in the <strong>History</strong> screen. Click any exam to:</p>
+          <ul>
+            <li>View all saved students and their marks</li>
+            <li>Add more students (continue the exam)</li>
+            <li>Re-export the Excel file</li>
+          </ul>
+          <p>Each exam is associated only with your account. Other teachers cannot see your exams.</p>
+
+          <h2 id="ug-admin">Admin Panel</h2>
+          <p>The admin panel is only visible to accounts with the <code>admin</code> role. From there, you can:</p>
+          <ul>
+            <li><strong>Approve</strong> pending teacher accounts</li>
+            <li><strong>Reject</strong> accounts that shouldn't have access</li>
+            <li>View a list of all registered users and their current status</li>
+          </ul>
+
+          <div class="callout callout-danger">
+            <span class="callout-icon">🛑</span>
+            <div class="callout-body">
+              <strong>Admin access is permanent</strong>
+              Rejecting a teacher sets their status to <code>rejected</code>. They cannot log in. To re-enable access, the admin must change their status back to <code>approved</code> directly in the database (no UI for this yet).
+            </div>
+          </div>
+
+        </section>
+
+
+        <!-- ═══════════════════════════════════════════
+             OCR GUIDE
+        ════════════════════════════════════════════ -->
+        <section class="doc-section" id="ocr">
+
+          <div class="page-header">
+            <div class="page-badge">🔬 OCR Guide</div>
+            <h1>OCR Guide</h1>
+            <p class="page-description">Get the best accuracy from GPT-4o vision by formatting exam sheets correctly and understanding confidence scores.</p>
+          </div>
+
+          <h2 id="ocr-how">How OCR Works</h2>
+          <p>When you upload an image, the app encodes it to base64 and sends it to OpenAI's <strong>GPT-4o</strong> vision API along with a structured prompt that describes the exam layout and asks the model to extract the "Achieved Marks" row.</p>
+          <p>The model returns a JSON array of marks (one value per question). The app validates these against your configured max marks and returns a confidence score.</p>
+
+          <h2 id="ocr-format">Exam Sheet Format</h2>
+          <p>Your exam sheets should follow this standard table layout for best results:</p>
+
+          <div class="code-block">
+            <div class="code-block-header">
+              <span class="code-lang">Exam Sheet Table Layout</span>
+              <button class="copy-btn">Copy</button>
+            </div>
+            <pre><code>┌──────────────────┬──────┬──────┬──────┬──────┬──────┐
+│                  │  Q1  │  Q2  │  Q3  │  Q4  │  Q5  │
+├──────────────────┼──────┼──────┼──────┼──────┼──────┤
+│ Max Marks        │  10  │  20  │  15  │  25  │  10  │
+├──────────────────┼──────┼──────┼──────┼──────┼──────┤
+│ Achieved Marks   │   8  │  17  │  14  │  22  │   9  │
+└──────────────────┴──────┴──────┴──────┴──────┴──────┘</code></pre>
+          </div>
+
+          <div class="callout callout-success">
+            <span class="callout-icon">✅</span>
+            <div class="callout-body">
+              <strong>Best practices for exam sheets</strong>
+              <ul style="margin:6px 0 0;padding-left:18px;">
+                <li>Use a printed table (not hand-drawn)</li>
+                <li>Leave clear cell borders</li>
+                <li>Write marks in the center of each cell</li>
+                <li>Use dark ink (black or blue) on white paper</li>
+              </ul>
+            </div>
+          </div>
+
+          <h2 id="ocr-image">Image Quality Tips</h2>
+          <ul>
+            <li><strong>Lighting:</strong> Shoot in good natural or even light. Avoid harsh shadows across the table.</li>
+            <li><strong>Angle:</strong> Keep the camera directly above the sheet (top-down). Slight angles (&lt;15°) are fine.</li>
+            <li><strong>Resolution:</strong> 1 MP or higher is sufficient. Most phone cameras are more than enough.</li>
+            <li><strong>Focus:</strong> Tap to focus on the mark table before shooting.</li>
+            <li><strong>Background:</strong> Plain desk or table background works best.</li>
+          </ul>
+
+          <h2 id="ocr-confidence">Confidence Scores</h2>
+          <p>Every OCR result includes a confidence percentage that indicates how certain GPT-4o was about the extracted marks.</p>
+
+          <div style="margin: 20px 0; background: #fff; border: 1.5px solid var(--gray-200); border-radius: var(--radius-lg); padding: 22px 24px;">
+            <div class="confidence-bar">
+              <span class="confidence-label conf-high-label">High (&gt;85%)</span>
+              <div class="confidence-track"><div class="confidence-fill conf-high" data-width="90%" style="width:0"></div></div>
+              <span style="font-size:.8rem;color:var(--gray-500);min-width:36px;">90%</span>
+            </div>
+            <p style="font-size:.84rem;color:var(--gray-500);margin:4px 0 16px 100px;">Safe to accept automatically. Marks are clear and legible.</p>
+
+            <div class="confidence-bar">
+              <span class="confidence-label conf-medium-label">Medium (50–85%)</span>
+              <div class="confidence-track"><div class="confidence-fill conf-medium" data-width="65%" style="width:0"></div></div>
+              <span style="font-size:.8rem;color:var(--gray-500);min-width:36px;">65%</span>
+            </div>
+            <p style="font-size:.84rem;color:var(--gray-500);margin:4px 0 16px 100px;">Verify against the original image. Minor ambiguity in handwriting.</p>
+
+            <div class="confidence-bar">
+              <span class="confidence-label conf-low-label">Low (&lt;50%)</span>
+              <div class="confidence-track"><div class="confidence-fill conf-low" data-width="30%" style="width:0"></div></div>
+              <span style="font-size:.8rem;color:var(--gray-500);min-width:36px;">30%</span>
+            </div>
+            <p style="font-size:.84rem;color:var(--gray-500);margin:4px 0 0 100px;">Manual entry required. Image quality issue or illegible handwriting.</p>
+          </div>
+
+          <h2 id="ocr-failures">Common Failure Causes</h2>
+          <table class="error-table">
+            <thead>
+              <tr><th>Issue</th><th>Cause</th><th>Fix</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Wrong mark extracted</td>
+                <td>Faint or smudged ink</td>
+                <td>Retake photo with better lighting; edit manually</td>
+              </tr>
+              <tr>
+                <td>Mark shows as 0 or null</td>
+                <td>Cell was left blank by student</td>
+                <td>Correct is 0 — confirm or enter manually</td>
+              </tr>
+              <tr>
+                <td>All marks wrong</td>
+                <td>Wrong row extracted (e.g., "Max" instead of "Achieved")</td>
+                <td>Check if your sheet matches the expected layout</td>
+              </tr>
+              <tr>
+                <td>Confidence always low</td>
+                <td>Pencil writing or very light ink</td>
+                <td>Increase contrast when photographing; use pen ink on sheets</td>
+              </tr>
+              <tr>
+                <td>Numbers transposed</td>
+                <td>Erasure visible on sheet</td>
+                <td>Cross out errors clearly; rewrite next to them</td>
+              </tr>
+              <tr>
+                <td>GPT-4o API error</td>
+                <td>OpenAI rate limit or temporary outage</td>
+                <td>Wait 30 seconds and retry the upload</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h2 id="ocr-limitations">Known Limitations</h2>
+          <ul>
+            <li><strong>Handwriting style:</strong> Very stylized or cursive numbers can confuse the model (e.g., European 7 with a crossbar, or crossed zeros).</li>
+            <li><strong>Multiple erasures:</strong> Heavily erased cells with visible ghost numbers can cause wrong extractions.</li>
+            <li><strong>Colored ink:</strong> Red or light-colored ink on white paper has lower accuracy than black/blue.</li>
+            <li><strong>Non-standard layouts:</strong> If your sheet doesn't have a labeled "Achieved Marks" row, results will be unreliable.</li>
+            <li><strong>Cost per image:</strong> Each upload costs approximately $0.001–$0.003 in OpenAI API credits depending on image size.</li>
+          </ul>
+
+        </section>
+
+
+        <!-- ═══════════════════════════════════════════
+             API REFERENCE
+        ════════════════════════════════════════════ -->
+        <section class="doc-section" id="api">
+
+          <div class="page-header">
+            <div class="page-badge">⚙️ API Reference</div>
+            <h1>API Reference</h1>
+            <p class="page-description">All REST endpoints, request formats, and response schemas for the backend API.</p>
+          </div>
+
+          <h2 id="api-auth-intro">Authentication</h2>
+          <p>All protected endpoints require a <strong>JWT token</strong> in the <code>Authorization</code> header:</p>
+          <div class="code-block">
+            <div class="code-block-header">
+              <span class="code-lang">HTTP Header</span>
+              <button class="copy-btn">Copy</button>
+            </div>
+            <pre><code>Authorization: Bearer eyJhbGciOiJIUzI1NiIs...</code></pre>
+          </div>
+          <p>Obtain the token from the <code>POST /auth/login</code> endpoint. Tokens expire after the session — call login again if you receive <code>401</code>.</p>
+
+          <h2 id="api-base">Base URL</h2>
+          <table class="params-table">
+            <thead><tr><th>Environment</th><th>Base URL</th></tr></thead>
+            <tbody>
+              <tr><td>Local Dev</td><td><code>http://localhost:5000</code></td></tr>
+              <tr><td>Production</td><td>Your Render deployment URL</td></tr>
+            </tbody>
+          </table>
+
+          <h2 id="api-auth">Auth Endpoints</h2>
+
+          <!-- POST /auth/signup -->
+          <div class="endpoint" id="ep-signup">
+            <div class="endpoint-header">
+              <span class="method-badge method-post">POST</span>
+              <span class="endpoint-path">/auth/signup</span>
+              <span class="endpoint-summary">Register a new teacher account</span>
+              <span class="endpoint-toggle">▼</span>
+            </div>
+            <div class="endpoint-body">
+              <p>Creates a new teacher account. Account starts as <code>pending</code> — admin must approve before the teacher can log in.</p>
+              <h4>Request Body</h4>
+              <table class="params-table">
+                <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                <tbody>
+                  <tr><td><code>email</code></td><td>string</td><td><span class="required-badge">required</span></td><td>Valid email address</td></tr>
+                  <tr><td><code>password</code></td><td>string</td><td><span class="required-badge">required</span></td><td>Min 6 characters</td></tr>
+                  <tr><td><code>fullName</code></td><td>string</td><td><span class="required-badge">required</span></td><td>Teacher's display name</td></tr>
+                  <tr><td><code>department</code></td><td>string</td><td><span class="optional-badge">optional</span></td><td>e.g., "Computer Science"</td></tr>
+                </tbody>
+              </table>
+              <div class="response-tabs">
+                <button class="res-tab active" data-tab="r200-signup">200 OK</button>
+                <button class="res-tab" data-tab="r400-signup">400 Error</button>
+              </div>
+              <div class="res-panel active" data-panel="r200-signup">
+                <div class="code-block" style="margin-top:0;border-radius:0 0 var(--radius) var(--radius);">
+                  <div class="code-block-header"><span class="code-lang">JSON Response</span><button class="copy-btn">Copy</button></div>
+                  <pre><code>{
+  "success": true,
+  "message": "Signup successful. Await admin approval."
+}</code></pre>
+                </div>
+              </div>
+              <div class="res-panel" data-panel="r400-signup">
+                <div class="code-block" style="margin-top:0;border-radius:0 0 var(--radius) var(--radius);">
+                  <div class="code-block-header"><span class="code-lang">JSON Response</span><button class="copy-btn">Copy</button></div>
+                  <pre><code>{
+  "error": "Email already registered"
+}</code></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- POST /auth/login -->
+          <div class="endpoint" id="ep-login">
+            <div class="endpoint-header">
+              <span class="method-badge method-post">POST</span>
+              <span class="endpoint-path">/auth/login</span>
+              <span class="endpoint-summary">Authenticate and get JWT token</span>
+              <span class="endpoint-toggle">▼</span>
+            </div>
+            <div class="endpoint-body">
+              <p>Authenticates the user and returns a JWT token. Accounts with status <code>pending</code> or <code>rejected</code> will receive a <code>403</code>.</p>
+              <h4>Request Body</h4>
+              <table class="params-table">
+                <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                <tbody>
+                  <tr><td><code>email</code></td><td>string</td><td><span class="required-badge">required</span></td><td>Registered email</td></tr>
+                  <tr><td><code>password</code></td><td>string</td><td><span class="required-badge">required</span></td><td>Account password</td></tr>
+                </tbody>
+              </table>
+              <div class="response-tabs">
+                <button class="res-tab active" data-tab="r200-login">200 OK</button>
+                <button class="res-tab" data-tab="r403-login">403 Forbidden</button>
+              </div>
+              <div class="res-panel active" data-panel="r200-login">
+                <div class="code-block" style="margin-top:0;border-radius:0 0 var(--radius) var(--radius);">
+                  <div class="code-block-header"><span class="code-lang">JSON Response</span><button class="copy-btn">Copy</button></div>
+                  <pre><code>{
+  "jwt": "eyJhbGciOiJIUzI1NiIs...",
+  "profile": {
+    "id": "uuid-of-user",
+    "fullName": "Dr. Jane Smith",
+    "email": "jane@university.edu",
+    "department": "Computer Science",
+    "role": "teacher",
+    "status": "approved"
+  }
+}</code></pre>
+                </div>
+              </div>
+              <div class="res-panel" data-panel="r403-login">
+                <div class="code-block" style="margin-top:0;border-radius:0 0 var(--radius) var(--radius);">
+                  <div class="code-block-header"><span class="code-lang">JSON Response</span><button class="copy-btn">Copy</button></div>
+                  <pre><code>{
+  "error": "Account not yet approved by admin"
+}</code></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h2 id="api-exams">Exam Endpoints</h2>
+
+          <!-- POST /api/exams -->
+          <div class="endpoint" id="ep-create-exam">
+            <div class="endpoint-header">
+              <span class="method-badge method-post">POST</span>
+              <span class="endpoint-path">/api/exams</span>
+              <span class="endpoint-summary">Create a new exam configuration</span>
+              <span class="endpoint-toggle">▼</span>
+            </div>
+            <div class="endpoint-body">
+              <p>Creates an exam configuration. Returns the exam ID used for subsequent uploads and student saves.</p>
+              <h4>Request Body</h4>
+              <table class="params-table">
+                <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                <tbody>
+                  <tr><td><code>subjectName</code></td><td>string</td><td><span class="required-badge">required</span></td><td>Full subject name</td></tr>
+                  <tr><td><code>subjectCode</code></td><td>string</td><td><span class="required-badge">required</span></td><td>Subject code (e.g., CS-301)</td></tr>
+                  <tr><td><code>examName</code></td><td>string</td><td><span class="required-badge">required</span></td><td>Exam label (e.g., Mid-Term)</td></tr>
+                  <tr><td><code>numQuestions</code></td><td>number</td><td><span class="required-badge">required</span></td><td>Total question count</td></tr>
+                  <tr><td><code>maxMarks</code></td><td>number[]</td><td><span class="required-badge">required</span></td><td>Max marks per question, length = numQuestions</td></tr>
+                  <tr><td><code>clos</code></td><td>string[]</td><td><span class="optional-badge">optional</span></td><td>CLO mapping per question</td></tr>
+                  <tr><td><code>rollPrefix</code></td><td>string</td><td><span class="required-badge">required</span></td><td>Roll number prefix (e.g., SE)</td></tr>
+                  <tr><td><code>rollBatch</code></td><td>string</td><td><span class="required-badge">required</span></td><td>Batch year (e.g., 24)</td></tr>
+                  <tr><td><code>rollStart</code></td><td>number</td><td><span class="required-badge">required</span></td><td>Starting roll number (e.g., 1)</td></tr>
+                </tbody>
+              </table>
+              <div class="response-tabs">
+                <button class="res-tab active" data-tab="r200-exam">200 OK</button>
+              </div>
+              <div class="res-panel active" data-panel="r200-exam">
+                <div class="code-block" style="margin-top:0;border-radius:0 0 var(--radius) var(--radius);">
+                  <div class="code-block-header"><span class="code-lang">JSON Response</span><button class="copy-btn">Copy</button></div>
+                  <pre><code>{
+  "success": true,
+  "examId": "550e8400-e29b-41d4-a716-446655440000"
+}</code></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h2 id="api-upload">Upload &amp; OCR</h2>
+
+          <!-- POST /api/upload -->
+          <div class="endpoint" id="ep-upload">
+            <div class="endpoint-header">
+              <span class="method-badge method-post">POST</span>
+              <span class="endpoint-path">/api/upload</span>
+              <span class="endpoint-summary">Upload exam sheet image and extract marks</span>
+              <span class="endpoint-toggle">▼</span>
+            </div>
+            <div class="endpoint-body">
+              <p>Accepts an exam sheet image, sends it to GPT-4o vision, and returns extracted marks with a confidence score. The request must be <code>multipart/form-data</code>, not JSON.</p>
+              <h4>Query Parameters</h4>
+              <table class="params-table">
+                <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                <tbody>
+                  <tr><td><code>examId</code></td><td>string (UUID)</td><td><span class="required-badge">required</span></td><td>ID of the exam to extract marks for</td></tr>
+                </tbody>
+              </table>
+              <h4>Form Body</h4>
+              <table class="params-table">
+                <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                <tbody>
+                  <tr><td><code>image</code></td><td>file</td><td><span class="required-badge">required</span></td><td>Exam sheet image (JPG, PNG, or WebP). Max 10 MB.</td></tr>
+                </tbody>
+              </table>
+              <h4>Example</h4>
+              <div class="code-block">
+                <div class="code-block-header"><span class="code-lang">cURL</span><button class="copy-btn">Copy</button></div>
+                <pre><code>curl -X POST "http://localhost:5000/api/upload?examId=&lt;EXAM_ID&gt;" \
+  -H "Authorization: Bearer &lt;JWT&gt;" \
+  -F "image=@sheet.jpg"</code></pre>
+              </div>
+              <div class="response-tabs">
+                <button class="res-tab active" data-tab="r200-up">200 OK</button>
+                <button class="res-tab" data-tab="r400-up">400 Error</button>
+                <button class="res-tab" data-tab="r500-up">500 Server Error</button>
+              </div>
+              <div class="res-panel active" data-panel="r200-up">
+                <div class="code-block" style="margin-top:0;border-radius:0 0 var(--radius) var(--radius);">
+                  <div class="code-block-header"><span class="code-lang">JSON Response</span><button class="copy-btn">Copy</button></div>
+                  <pre><code>{
+  "success": true,
+  "marks": [8, 18, 14, 22, 9],
+  "confidence": 91,
+  "requiresReview": false
+}</code></pre>
+                </div>
+              </div>
+              <div class="res-panel" data-panel="r400-up">
+                <div class="code-block" style="margin-top:0;border-radius:0 0 var(--radius) var(--radius);">
+                  <div class="code-block-header"><span class="code-lang">JSON Response</span><button class="copy-btn">Copy</button></div>
+                  <pre><code>{
+  "error": "No image uploaded"
+}</code></pre>
+                </div>
+              </div>
+              <div class="res-panel" data-panel="r500-up">
+                <div class="code-block" style="margin-top:0;border-radius:0 0 var(--radius) var(--radius);">
+                  <div class="code-block-header"><span class="code-lang">JSON Response</span><button class="copy-btn">Copy</button></div>
+                  <pre><code>{
+  "error": "GPT-4o API failed. Try again in 30 seconds."
+}</code></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h2 id="api-errors">Error Codes</h2>
+          <table class="error-table">
+            <thead>
+              <tr><th>Code</th><th>Meaning</th><th>Common Cause</th><th>Fix</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="status-badge status-400">400</span></td>
+                <td>Bad Request</td>
+                <td>Missing required fields, wrong content type</td>
+                <td>Check request body / form fields</td>
+              </tr>
+              <tr>
+                <td><span class="status-badge status-401">401</span></td>
+                <td>Unauthorized</td>
+                <td>Missing or expired JWT token</td>
+                <td>Call <code>/auth/login</code> to get a fresh token</td>
+              </tr>
+              <tr>
+                <td><span class="status-badge status-403">403</span></td>
+                <td>Forbidden</td>
+                <td>Account pending/rejected, or insufficient role</td>
+                <td>Wait for admin approval or use an admin account</td>
+              </tr>
+              <tr>
+                <td><span class="status-badge status-404">404</span></td>
+                <td>Not Found</td>
+                <td>Exam ID doesn't exist or belongs to another teacher</td>
+                <td>Verify the exam ID is correct</td>
+              </tr>
+              <tr>
+                <td><span class="status-badge status-500">500</span></td>
+                <td>Server Error</td>
+                <td>OpenAI API outage, Supabase timeout, unhandled exception</td>
+                <td>Retry after 30 seconds; check server logs</td>
+              </tr>
+            </tbody>
+          </table>
+
+        </section>
+
+
+        <!-- ═══════════════════════════════════════════
+             DEVELOPER GUIDE
+        ════════════════════════════════════════════ -->
+        <section class="doc-section" id="dev">
+
+          <div class="page-header">
+            <div class="page-badge">💻 Developer Guide</div>
+            <h1>Developer Guide</h1>
+            <p class="page-description">Set up the project locally, understand the code structure, and run the tests.</p>
+          </div>
+
+          <h2 id="dev-prereqs">Prerequisites</h2>
+          <ul>
+            <li>Python <strong>3.10+</strong></li>
+            <li>pip (comes with Python)</li>
+            <li>A <a href="https://supabase.com" target="_blank">Supabase</a> project (free tier is fine)</li>
+            <li>An <a href="https://platform.openai.com" target="_blank">OpenAI</a> API key with GPT-4o access</li>
+          </ul>
+
+          <h2 id="dev-setup">Local Setup</h2>
+          <div class="steps">
+            <div class="step">
+              <div class="step-number">1</div>
+              <div class="step-body">
+                <div class="step-title">Clone the repository</div>
+                <div class="step-desc">
+                  <div class="code-block" style="margin-top:8px;">
+                    <div class="code-block-header"><span class="code-lang">bash</span><button class="copy-btn">Copy</button></div>
+                    <pre><code>git clone https://github.com/Okaymisba/Exam-Paper-Scanner.git
+cd exam-marks-app</code></pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">2</div>
+              <div class="step-body">
+                <div class="step-title">Create and activate virtual environment</div>
+                <div class="step-desc">
+                  <div class="code-block" style="margin-top:8px;">
+                    <div class="code-block-header"><span class="code-lang">bash</span><button class="copy-btn">Copy</button></div>
+                    <pre><code>python -m venv venv
+
+# macOS / Linux
+source venv/bin/activate
+
+# Windows
+venv\Scripts\activate</code></pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">3</div>
+              <div class="step-body">
+                <div class="step-title">Install dependencies</div>
+                <div class="step-desc">
+                  <div class="code-block" style="margin-top:8px;">
+                    <div class="code-block-header"><span class="code-lang">bash</span><button class="copy-btn">Copy</button></div>
+                    <pre><code>pip install -r requirements.txt</code></pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">4</div>
+              <div class="step-body">
+                <div class="step-title">Create .env file</div>
+                <div class="step-desc">Copy the template and fill in your credentials (see Environment Variables below).</div>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-number">5</div>
+              <div class="step-body">
+                <div class="step-title">Run the app</div>
+                <div class="step-desc">
+                  <div class="code-block" style="margin-top:8px;">
+                    <div class="code-block-header"><span class="code-lang">bash</span><button class="copy-btn">Copy</button></div>
+                    <pre><code>python app.py
+# Visit http://localhost:5000</code></pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h2 id="dev-env">Environment Variables</h2>
+          <p>Create a <code>.env</code> file in the project root (this file is gitignored):</p>
+          <table class="env-table">
+            <thead>
+              <tr><th>Variable</th><th>Required</th><th>Description</th><th>Example</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>OPENAI_API_KEY</code></td>
+                <td><span class="env-required">Required</span></td>
+                <td>Your OpenAI API key for GPT-4o vision</td>
+                <td><code>sk-proj-…</code></td>
+              </tr>
+              <tr>
+                <td><code>SUPABASE_URL</code></td>
+                <td><span class="env-required">Required</span></td>
+                <td>Your Supabase project URL</td>
+                <td><code>https://xyz.supabase.co</code></td>
+              </tr>
+              <tr>
+                <td><code>SUPABASE_KEY</code></td>
+                <td><span class="env-required">Required</span></td>
+                <td>Supabase <code>anon</code> public key</td>
+                <td><code>eyJhbGciOi…</code></td>
+              </tr>
+              <tr>
+                <td><code>SUPABASE_SERVICE_KEY</code></td>
+                <td><span class="env-required">Required</span></td>
+                <td>Supabase <code>service_role</code> key (for admin operations)</td>
+                <td><code>eyJhbGciOi…</code></td>
+              </tr>
+              <tr>
+                <td><code>SECRET_KEY</code></td>
+                <td><span class="env-required">Required</span></td>
+                <td>Flask session secret key</td>
+                <td>Any random 32-char string</td>
+              </tr>
+              <tr>
+                <td><code>FLASK_DEBUG</code></td>
+                <td><span class="env-optional">Optional</span></td>
+                <td>Set to <code>1</code> for debug mode (local only)</td>
+                <td><code>1</code></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="callout callout-danger">
+            <span class="callout-icon">🔑</span>
+            <div class="callout-body">
+              <strong>Never commit your .env file</strong>
+              It contains secret keys. The <code>.env</code> file is listed in <code>.gitignore</code> — do not force-add it to git.
+            </div>
+          </div>
+
+          <h2 id="dev-structure">Code Structure</h2>
+          <div class="code-block">
+            <div class="code-block-header"><span class="code-lang">File Tree</span><button class="copy-btn">Copy</button></div>
+            <pre><code>exam-marks-app/
+├── app.py              # Flask app, route definitions
+├── database.py         # All Supabase database operations
+├── ocr_processor.py    # GPT-4o OCR logic and prompts
+├── excel_exporter.py   # Excel file generation (openpyxl)
+├── requirements.txt    # Python dependencies
+├── .env                # Secrets (gitignored)
+│
+├── templates/
+│   ├── index.html           # Single-page app shell
+│   └── partials/            # Jinja2 partials for each screen
+│       ├── _header.html
+│       ├── _screen_auth.html
+│       ├── _screen_setup.html
+│       ├── _screen_entry.html
+│       └── ...
+│
+├── static/
+│   ├── style.css            # CSS entry (imports all modules)
+│   ├── css/
+│   │   ├── base.css         # Design tokens, reset
+│   │   ├── layout.css       # App shell, header, sidebar
+│   │   ├── components.css   # Buttons, cards, forms
+│   │   ├── tables.css       # Marks and student tables
+│   │   ├── entry.css        # Upload / entry screen
+│   │   ├── screens.css      # All screen-specific styles
+│   │   └── responsive.css   # Media queries
+│   └── js/
+│       ├── state.js         # Global shared state
+│       ├── utils.js         # Pure helpers (apiFetch, alerts)
+│       ├── nav.js           # Screen navigation (goTo)
+│       ├── auth.js          # Login, signup, session restore
+│       ├── admin.js         # Admin panel logic
+│       ├── setup.js         # Exam setup form
+│       ├── entry.js         # Upload screen, OCR flow
+│       ├── marks-table.js   # Per-student marks table
+│       ├── students-list.js # Saved students list
+│       ├── history.js       # Exam history screen
+│       ├── export.js        # Excel export button
+│       └── app.js           # Boot, keyboard shortcuts
+│
+├── tests/
+│   ├── unit/            # Unit tests (pure functions)
+│   ├── integration/     # Integration tests (API + DB)
+│   └── e2e/             # End-to-end tests (Playwright)
+│
+└── docs/
+    └── site/            # This documentation site</code></pre>
+          </div>
+
+          <h2 id="dev-tests">Running Tests</h2>
+          <div class="code-block">
+            <div class="code-block-header"><span class="code-lang">bash</span><button class="copy-btn">Copy</button></div>
+            <pre><code># Install test dependencies
+pip install -r requirements-test.txt
+
+# Run all tests
+pytest
+
+# Run with coverage report
+pytest --cov=. --cov-report=term-missing
+
+# Run only unit tests
+pytest tests/unit/
+
+# Run only integration tests
+pytest tests/integration/
+
+# Run E2E tests (requires running Flask server)
+pytest tests/e2e/</code></pre>
+          </div>
+
+          <div class="callout callout-info">
+            <span class="callout-icon">📋</span>
+            <div class="callout-body">
+              <strong>Test coverage target: 80%</strong>
+              New features should include unit and integration tests. E2E tests cover critical user flows (signup, create exam, upload, export).
+            </div>
+          </div>
+
+          <h2 id="dev-deploy">Deployment (Render)</h2>
+          <p>The app is deployed on <a href="https://render.com" target="_blank">Render</a> as a Python web service. The CI pipeline on GitHub Actions runs tests on push to <code>master</code> and triggers a Render deploy hook on success.</p>
+          <table class="params-table">
+            <thead><tr><th>Setting</th><th>Value</th></tr></thead>
+            <tbody>
+              <tr><td>Build Command</td><td><code>pip install -r requirements.txt</code></td></tr>
+              <tr><td>Start Command</td><td><code>gunicorn app:app</code></td></tr>
+              <tr><td>Python Version</td><td>3.11+</td></tr>
+              <tr><td>Environment</td><td>Set all vars from .env in Render dashboard</td></tr>
+            </tbody>
+          </table>
+
+        </section>
+
+
+        <!-- ── Footer ── -->
+        <footer class="doc-footer">
+          <p>© 2025 OBE Exam Marks Extractor. Built with Flask &amp; GPT-4o.</p>
+          <div class="footer-links">
+            <a href="https://github.com/Okaymisba/Exam-Paper-Scanner" target="_blank">GitHub</a>
+            <a href="https://github.com/Okaymisba/Exam-Paper-Scanner/issues" target="_blank">Report Issue</a>
+          </div>
+        </footer>
+
+      </article>
+
+      <!-- ── TOC ── -->
+      <aside class="doc-toc" id="toc"></aside>
+    </div>
+  </main>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
